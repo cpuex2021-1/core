@@ -9,7 +9,7 @@ module PC(
     // enable 必要だよねそのうち
     assign pc = pc_reg;
     always_ff @(posedge clk) begin
-        if (~rst) begin
+        if (rst) begin
             pc_reg <= 27'b0;
         end else begin
             pc_reg <= npc;

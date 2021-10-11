@@ -2,7 +2,7 @@
 
 module top(
         input logic clk,rst,
-        output logic [15:0] led
+        output wire [15:0] LED
     );
     wire [31:0] inst;
     wire [4:0] rs1,rs2,rd;
@@ -11,16 +11,19 @@ module top(
     wire [31:0] res;
     wire [26:0] pc;
     wire [26:0] npc;
-    wire [31:0] rddata;
     //wire rwe, fwe; //for future need
     wire [24:0] daddr;
     wire [24:0] baddr;
     wire mwe;
     wire [31:0] memdata;
 
+    assign LED = res[15:0];
+
+
     PC       program_counter(.clk, .rst, .npc, .pc );
     imem_ram imem(.clk, .rst, .pc, .inst);
     decode decode(.clk, .rst, .inst, .op1, .op2, .aluctl, .rd, .pc,.npc, .res, .memdata);
     ALU alu(.clk, .rst, .op1, .op2, .aluctl,  .res,.daddr);
     dmem_ram dmem(.clk, .rst, .daddr, .mwe , .res, .memdata);
+
 endmodule

@@ -2,7 +2,7 @@
 
 module simtop();
     logic clk, rst;
-    logic [15:0] led;
+    wire [15:0] LED;
 
     
     always  begin
@@ -12,11 +12,11 @@ module simtop();
     end
 
     initial begin
-        rst = 1'b0;
-        #25 rst = 1'b1;
+        rst = 1'b1;
+        #25 rst = 1'b0;
         #1000 $finish;
 
     end
 
-    top top(.clk, .rst, .led);
+    top top(.clk(clk), .rst(rst), .LED(LED));
 endmodule

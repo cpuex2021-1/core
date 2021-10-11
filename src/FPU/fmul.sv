@@ -1,23 +1,5 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/02/2021 08:56:17 PM
-// Design Name: 
-// Module Name: fmul
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+
 // レギュレーションに基づく
 
 // (-1) ^ (s1 ^ s2) * 2^ (e1 + e2 - 127) - 127 * (1.m1) * (1.m2)

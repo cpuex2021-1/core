@@ -2,7 +2,7 @@
 
 module simtop();
     logic clk, rst;
-    logic [15:0] led;
+    logic [15:0] LED;
 
     
     always  begin
@@ -18,5 +18,5 @@ module simtop();
 
     end
 
-    top top(.clk, .rst, .led);
+    top top(.clk, .rst, .LED);
 endmodule

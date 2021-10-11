@@ -1,24 +1,4 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/07/2021 12:56:32 AM
-// Design Name: 
-// Module Name: fmin
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
 
 module flt(
         input  logic [31:0] x,y,
@@ -28,8 +8,15 @@ module flt(
     logic [7:0] xe, ye;
     logic [22:0] xm, ym;
 
-    logic xeLTye;
-    logic xmLTym;
+    logic el, eeq;
+    logic ml;
+    logic absl;
+
+    logic sl;
+
+    logic pp, np, nn;
+
+    logic emeq;
     always_comb begin
         xs = x[31];
         ys = y[31];
@@ -38,9 +25,18 @@ module flt(
         xm = x[22:0];
         ym = y[22:0];
 
-        xeLTye = xe < ye;
-        xmLTym = xm < ym;
+        el = xe < ye;
+        eeq = ~|(xe ^ ye);
+        ml = xm < ym;
+
+        absl = el | (eeq & ml);
+
+        pp = xs & ys;  // x y positive
+        np = xs & ~ys; //x negative y positive
+        nn = ~(xs | ys);// x y negative
+
+        emeq = ~| (x[30:0] ^ y[30:0]);
+
+        z = { 31'b0, (pp & absl) | np | (nn & ~absl & ~emeq)};
     end
-
-
 endmodule

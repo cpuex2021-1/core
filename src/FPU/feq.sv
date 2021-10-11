@@ -1,24 +1,6 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/02/2021 08:40:36 PM
-// Design Name: 
-// Module Name: feq
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 
+// for denormalized and different inputs what should be returned?
 
 module feq(
         input logic [31:0] x,y,
@@ -42,3 +24,4 @@ module feq(
     logic allsame = x == y;
     assign z = bothzero | allsame;
 endmodule
+
