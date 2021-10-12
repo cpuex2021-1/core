@@ -1,9 +1,11 @@
 `timescale 1ns / 1ps
 
 `define ADDR_LEN 25
-`define TAG_LEN 13
-`define INDEX_LEN 10
+`define TAG_LEN 9
+`define INDEX_LEN 14
 `define OFFSET_LEN 2
+
+// `define SET_ASSOC
 
 module dmem_ram(
         input  logic clk,rst,
@@ -13,11 +15,12 @@ module dmem_ram(
         output logic [31:0] memdata
     );
 
-    (* ram_style = "distributed" *) logic [31:0] cache [1023:0];
-    (* ram_style = "distributed" *) logic [12:0] tag_array [1023:0];
-    (* ram_style = "distributed" *) logic valid_array [1023:0];
-    logic [12:0] tag;
-    logic [9:0] index;
+    `ifndef SET_ASSOC
+    (* ram_style = "distributed" *) logic [31:0] cache [16383:0];
+    (* ram_style = "distributed" *) logic [8:0] tag_array [16383:0];
+    (* ram_style = "distributed" *) logic valid_array [16383:0];
+    logic [8:0] tag;
+    logic [13:0] index;
     logic [1:0] offset;
     assign {tag, index, offset} = daddr;
 
@@ -27,7 +30,7 @@ module dmem_ram(
     
     integer i;
     initial begin 
-        for (i=0; i<1023; i=i+1) begin
+        for (i=0; i<16383; i=i+1) begin
             cache[i] = 0;
             tag_array[i] = 0;
             valid_array[i] = 0;
@@ -56,4 +59,7 @@ module dmem_ram(
     end
 
     assign memdata = cache[index];
+    `else
+    // TODO: 2-way set associative
+    `endif 
 endmodule
