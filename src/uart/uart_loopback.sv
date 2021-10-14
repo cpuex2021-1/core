@@ -4,35 +4,25 @@ module uart_loopback(
     output  logic txd
 );
     logic [7:0] rdata;
-    logic [7:0] tdata, n_tdata;
+    logic [7:0] tdata;
     logic rvalid;
-    logic tvalid, n_tvalid;
+    logic tvalid;
     logic tready;
+    logic wr_full, rd_empty;
+
+    
 
     uart_rx rx(.clk, .rst, .rdata, .rvalid, .rxd);
     uart_tx tx(.clk, .rst, .tdata, .tvalid, .tready,  .txd);
 
+    fifo loop(.clk, .rst, .wr_en(rvalid),.wr_d(rdata), .wr_full, .rd_d(tdata), .rd_en(~rd_empty &tready), .rd_empty);
+
+
     always_comb begin 
-        n_tvalid = tvalid;
-        n_tdata  = tdata;
-        if(rvalid) begin
-            n_tvalid = 1;
-            n_tdata  = rdata;
-        end
-        if(tvalid && tready) begin
-            n_tvalid = 0;
-        end
-        
+        tvalid = ~rd_empty & tready;
     end
 
     always_ff @( posedge clk ) begin 
-        if (rst) begin
-            tdata  <= 8'b0;
-            tvalid <= 0;
-        end else begin
-            tdata  <= n_tdata;
-            tvalid <= n_tvalid;
-        end
-        
+       
     end
 endmodule
