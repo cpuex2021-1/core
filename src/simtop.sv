@@ -2,6 +2,7 @@
 
 module simtop();
     logic clk, rst;
+    logic rxd, txd;
     logic [15:0] LED;
 
     
@@ -12,11 +13,24 @@ module simtop();
     end
 
     initial begin
-        rst = 1'b0;
-        #25 rst = 1'b1;
-        #1000 $finish;
+        rxd = 1;
+        rst = 1'b1;
+        #25 rst = 1'b0;
+        repeat(100) begin
+        #100 rxd = 0;
+        #100 rxd = 1;
+        #100 rxd = 0;
+        #100 rxd = 1;
+        #100 rxd = 0;
+        #100 rxd = 1;
+        #100 rxd = 0;
+        #100 rxd = 1;
+        #100 rxd = 0;
+        #100 rxd = 1;
+        end
+        
 
     end
 
-    top top(.clk, .rst, .LED);
+    top top(.clk, .rst, .LED, .rxd, .txd);
 endmodule

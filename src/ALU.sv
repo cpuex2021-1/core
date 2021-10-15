@@ -4,8 +4,7 @@ module ALU(
         input  logic clk, rst,
         input  logic [31:0] op1, op2,
         input  logic [6:0]  aluctl,
-        output logic [31:0] res,
-        output logic [24:0] daddr
+        output logic [31:0] res
     );
     // arithmetic for op= 000 , 100 (including immediate)
     logic [31:0] add, sub, sll, srl, sra, slt, sltu, xorr, andd, orr;
@@ -148,5 +147,4 @@ module ALU(
         endcase 
     end
 
-    assign daddr = add[24:0];
 endmodule

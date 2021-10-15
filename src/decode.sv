@@ -6,9 +6,12 @@ module decode(
         output logic [31:0] op1, op2,
         output logic [6:0] aluctl,
         output logic [4:0] rd,
-        input logic [26:0] pc,
+        output logic mre, mwe,
+        input  logic [26:0] pc,
         output logic [26:0] npc,
-        input  logic [31:0] res,memdata
+        input  logic [31:0] res,memdata,
+        input  logic stall,
+        output logic [24:0] daddr
         //input  logic rwe, fwe
     );
     logic [2:0] op, funct;
@@ -17,6 +20,9 @@ module decode(
 
     assign aluctl = {inst[11], op, funct};   // inst[11] : add subとかの区別
                                                         // {op, funct} にすると 10進数で考えて0,1,2...ってなってきれい
+                                                        
+    assign mwe = op==3'b110 && funct[2:1] == 2'b11;
+    assign mre = op==3'b101 && funct[2:1] == 2'b00;
     
     logic [4:0] rs1, rs2;
     assign rs1 = inst[31:27];
@@ -31,12 +37,13 @@ module decode(
     logic [31:0] frs1data, frs2data;
     logic rwe, fwe;
     assign rwe = ~op[1]  ||  // add, mul,  addi, lw..
-                (op == 3'b011 && funct[2] == 0) ; //feq .. fmv.x.w;
+                (op == 3'b011 && funct[2] == 0) ||
+                (op == 3'b110 && funct[2:1] == 2'b11) ; //feq .. fmv.x.w;
     assign fwe = op == 3'b010 || inst[5:0] == 6'b100011; // fadd... , fmv.w.x
     logic [31:0] rddata;
     assign rddata = ~|(funct[2:1]) && op == 3'b101 ? memdata : res;
-    register register (.clk, .rst, .rs1, .rs2, .rs1data, .rs2data, .rd, .rddata, .we(rwe));   
-    register fregister(.clk, .rst, .rs1, .rs2, .rs1data(frs1data), .rs2data(frs2data), .rd, .rddata, .we(fwe));
+    register register (.clk, .rst, .rs1, .rs2, .rs1data, .rs2data, .rd, .rddata, .we(rwe & ~stall));   
+    register fregister(.clk, .rst, .rs1, .rs2, .rs1data(frs1data), .rs2data(frs2data), .rd, .rddata, .we(fwe & ~stall));
     always_comb begin
         unique case (op) 
             /*3'b000 : op1 = rs1data;
@@ -58,7 +65,7 @@ module decode(
             3'b011 : op2 = frs2data; //illegal!! for fmv
             3'b100 : op2 = immIL;
             3'b101 : op2 = immIL;
-            3'b110 : op2 = immSB;
+            3'b110 : op2 = rs2data;   
             3'b111 : op2 = immIL; // may be illegal  do-siyo 
         endcase
     end                           
@@ -97,5 +104,9 @@ module decode(
         endcase
     end
     
+    logic [31:0] SBaddr, ILaddr;
+    assign SBaddr = rs1data + immSB;
+    assign ILaddr = rs1data + immIL;
+    assign daddr = (op==3'b110) ? SBaddr[24:0] : ILaddr[24:0];
     
 endmodule

@@ -6,7 +6,7 @@ module uart_rx (
     output logic [7:0] rdata,
     output logic rvalid 
 );
-  parameter  WAIT_DIV = 868;
+  parameter  WAIT_DIV = 608;  // care frequency!!
   localparam WAIT_LEN = $clog2(WAIT_DIV);
 
   typedef enum{
