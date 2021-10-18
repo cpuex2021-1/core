@@ -6,11 +6,12 @@ import sys
 line = []
 nums = []
 
-xsum = 8191 * 4096
-x2sum = 8191 * 4096 * 5461
-n = 8192
+n =16384 
+xsum = (n-1) * n / 2
+x2sum = n * (n+1) * (2*n +1) / 6
 
 key = 0
+i=0
 with open('sqrlist.txt', 'r', encoding='utf-8') as fin:
     for line in fin.readlines():
         inprod = 0
@@ -22,5 +23,8 @@ with open('sqrlist.txt', 'r', encoding='utf-8') as fin:
             ysum += f
         a = (n * inprod - xsum * ysum) / (n * x2sum - xsum ** 2)
         b = (x2sum * ysum - inprod * xsum) / (n*x2sum - xsum**2)
-        print(-((int(a)>>11) << 11))
-        print(int(b))
+        #print(((hex(int(a) >> 10))[2:] ))
+        #print(hex(int(b)>>23)[2:] )
+        ans = (int(a) >> 10) + ((int(b) >> 23) << 13)
+        print("init_grad[" + str(i) + "] = 36'h" + hex(ans)[2:] + ";")
+        i = i+1

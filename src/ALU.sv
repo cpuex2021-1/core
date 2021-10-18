@@ -21,15 +21,19 @@ module ALU(
     
     //Mul and div
     //違う！気が！する！
-    logic [63:0] fullmul,fullmulsu, fullmulu   ;
-    assign fullmul   = op1 * op2;
-    assign fullmulsu = op1 * $unsigned(op2);
-    assign fullmulu  = $unsigned(op1) * $unsigned (op2);
+    //logic [63:0] fullmul,fullmulsu, fullmulu   ;
+    //assign fullmul   = op1 * op2;
+    //assign fullmulsu = op1 * $unsigned(op2);
+    //assign fullmulu  = $unsigned(op1) * $unsigned (op2);
     logic [31:0] mul, mulh, mulhsu,mulhu, div , divu, rem, remu;
-    assign mul    = fullmul[31:0];
-    assign mulh   = fullmul[63:32];
-    assign mulhsu = fullmulsu[63:32];
-    assign mulhu   = fullmulu[63:32];
+    //assign mul    = op1[15:0] * op2[15:0];
+    //assign mulh   = fullmul[63:32];
+    //assign mulhsu = fullmulsu[63:32];
+    //assign mulhu   = fullmulu[63:32];
+    assign mul   = 32'b0;
+    assign mulh  = 32'b0;
+    assign mulhsu= 32'b0;
+    assign mulhu = 32'b0;
     // not yes implemented
     assign div    = 32'b0;
     assign divu   = 32'b0;
