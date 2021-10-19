@@ -4,8 +4,16 @@ module ALU(
         input  logic clk, rst,
         input  logic [31:0] op1, op2,
         input  logic [6:0]  aluctl,
-        output logic [31:0] res
+        output logic [31:0] wb_res
     );
+    always_ff @( posedge clk ) begin 
+        if(rst) begin
+            wb_res <= 0;
+        end else begin
+            wb_res <= n_res;
+        end
+        
+    end
     // arithmetic for op= 000 , 100 (including immediate)
     logic [31:0] add, sub, sll, srl, sra, slt, sltu, xorr, andd, orr;
     assign add = op1 +   op2;
@@ -74,80 +82,81 @@ module ALU(
     assign bgeu= $unsigned(op1) >=$unsigned(op2);
 
 
+    logic [31:0] n_res;
     always_comb begin 
         unique case (aluctl[5:0])
-            6'b000000 :  res = aluctl[6] ? sub : add;
-            6'b000001 :  res = sll;
-            6'b000010 :  res = aluctl[6] ? srl : sra;
-            6'b000011 :  res = slt;
-            6'b000100 :  res = sltu;
-            6'b000101 :  res = xorr;
-            6'b000110 :  res = orr;
-            6'b000111 :  res = andd;
+            6'b000000 :  n_res = aluctl[6] ? sub : add;
+            6'b000001 :  n_res = sll;
+            6'b000010 :  n_res = aluctl[6] ? srl : sra;
+            6'b000011 :  n_res = slt;
+            6'b000100 :  n_res = sltu;
+            6'b000101 :  n_res = xorr;
+            6'b000110 :  n_res = orr;
+            6'b000111 :  n_res = andd;
 
-            6'b001000 : res = mul;
-            6'b001001 : res = mulh;
-            6'b001010 : res = mulhsu;
-            6'b001011 : res = mulhu;
-            6'b001100 : res = div;
-            6'b001101 : res = divu;
-            6'b001110 : res = rem;
-            6'b001111 : res = remu;
+            6'b001000 :  n_res = mul;
+            6'b001001 :  n_res = mulh;
+            6'b001010 :  n_res = mulhsu;
+            6'b001011 :  n_res = mulhu;
+            6'b001100 :  n_res = div;
+            6'b001101 :  n_res = divu;
+            6'b001110 :  n_res = rem;
+            6'b001111 :  n_res = remu;
 
-            6'b010000 : res = fadd;
-            6'b010001 : res = fsub;
-            6'b010010 : res = fmul;
-            6'b010011 : res = fdiv;
-            6'b010100 : res = fsqrt;
-            6'b010101 : res = fneg;
-            6'b010110 : res = fmin;
-            6'b010111 : res = fmax; 
+            6'b010000 :  n_res = fadd;
+            6'b010001 :  n_res = fsub;
+            6'b010010 :  n_res = fmul;
+            6'b010011 :  n_res = fdiv;
+            6'b010100 :  n_res = fsqrt;
+            6'b010101 :  n_res = fneg;
+            6'b010110 :  n_res = fmin;
+            6'b010111 :  n_res = fmax; 
 
-            6'b011000 : res = feq;
-            6'b011001 : res = flt; 
-            6'b011010 : res = fle; 
-            6'b011011 : res = fmvwx;
-            6'b011100 : res = fmvxw;
-            6'b011101 : res = 32'b0; // invalid 
-            6'b011110 : res = 32'b0; // invalid
-            6'b011111 : res = 32'b0; // invalid
+            6'b011000 :  n_res = feq;
+            6'b011001 :  n_res = flt; 
+            6'b011010 :  n_res = fle; 
+            6'b011011 :  n_res = fmvwx;
+            6'b011100 :  n_res = fmvxw;
+            6'b011101 :  n_res = 32'b0; // invalid 
+            6'b011110 :  n_res = 32'b0; // invalid
+            6'b011111 :  n_res = 32'b0; // invalid
 
             //same with 000xxx
-            6'b100000 :  res = add;
-            6'b100001 :  res = sll;
-            6'b100010 :  res = aluctl[6] ? sra : srl;
-            6'b100011 :  res = slt;
-            6'b100100 :  res = sltu;
-            6'b100101 :  res = xorr;
-            6'b100110 :  res = orr;
-            6'b100111 :  res = andd;
+            6'b100000 :  n_res = add;
+            6'b100001 :  n_res = sll;
+            6'b100010 :  n_res = aluctl[6] ? sra : srl;
+            6'b100011 :  n_res = slt;
+            6'b100100 :  n_res = sltu;
+            6'b100101 :  n_res = xorr;
+            6'b100110 :  n_res = orr;
+            6'b100111 :  n_res = andd;
 
-            6'b101000 : res = 32'b0;  //lw
-            6'b101001 : res = 32'b0;  //flw
-            6'b101010 : res = lui; 
-            6'b101011 : res = 32'b0; // invalid
-            6'b101100 : res = 32'b0; // invalid
-            6'b101101 : res = 32'b0; // invalid 
-            6'b101110 : res = 32'b0; // invalid
-            6'b101111 : res = 32'b0; // invalid
+            6'b101000 :  n_res = 32'b0;  //lw
+            6'b101001 :  n_res = 32'b0;  //flw
+            6'b101010 :  n_res = lui; 
+            6'b101011 :  n_res = 32'b0; // invalid
+            6'b101100 :  n_res = 32'b0; // invalid
+            6'b101101 :  n_res = 32'b0; // invalid 
+            6'b101110 :  n_res = 32'b0; // invalid
+            6'b101111 :  n_res = 32'b0; // invalid
 
-            6'b110000 : res = 32'b0;  //branch
-            6'b110001 : res = 32'b0;  //branch
-            6'b110010 : res = 32'b0;  //branch
-            6'b110011 : res = 32'b0;  //branch
-            6'b110100 : res = 32'b0;  //branch
-            6'b110101 : res = 32'b0;  //branch
-            6'b110110 : res = op2;    //sw
-            6'b110111 : res = op2;    //fsw
+            6'b110000 :  n_res = 32'b0;  //branch
+            6'b110001 :  n_res = 32'b0;  //branch
+            6'b110010 :  n_res = 32'b0;  //branch
+            6'b110011 :  n_res = 32'b0;  //branch
+            6'b110100 :  n_res = 32'b0;  //branch
+            6'b110101 :  n_res = 32'b0;  //branch
+            6'b110110 :  n_res = op2;    //sw
+            6'b110111 :  n_res = op2;    //fsw
 
-            6'b111000 : res = 32'b0;  //jump
-            6'b111001 : res = 32'b0;  //jal
-            6'b111010 : res = 32'b0;  //jalr
-            6'b111011 : res = 32'b0;  //invalid
-            6'b111100 : res = 32'b0;  //invalid
-            6'b111101 : res = 32'b0;  //invalid
-            6'b111110 : res = 32'b0;    //invalid
-            6'b111111 : res = 32'b0;    //invalid
+            6'b111000 :  n_res = 32'b0;  //jump
+            6'b111001 :  n_res = 32'b0;  //jal
+            6'b111010 :  n_res = 32'b0;  //jalr
+            6'b111011 :  n_res = 32'b0;  //invalid
+            6'b111100 :  n_res = 32'b0;  //invalid
+            6'b111101 :  n_res = 32'b0;  //invalid
+            6'b111110 :  n_res = 32'b0;    //invalid
+            6'b111111 :  n_res = 32'b0;    //invalid
         endcase 
     end
 

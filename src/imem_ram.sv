@@ -8,8 +8,14 @@ module imem_ram(
 
     (*ram_style = "distributed"*) logic [31:0] mem [1023:0];
     initial begin
-        $readmemb("inst.mem", mem,0, 1023);
+        $readmemh("inst.mem", mem,0, 1023);
     end
-    assign inst = mem[pc[11:2]];
+    always_ff @( posedge clk ) begin 
+        if(rst) begin
+            inst <= 0;
+        end else begin
+            inst <= mem[pc[11:2]];
+        end
+    end
 
 endmodule

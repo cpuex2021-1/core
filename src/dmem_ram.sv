@@ -12,20 +12,26 @@
 // addr != 0 -> cache DRAM
 module dmem_ram(
         input  logic clk,rst,
-        input  logic [24:0] daddr,
-        input  logic mre,
-        input  logic mwe,
-        input  logic [31:0] res,
-        output logic [31:0] memdata,
+        input  logic [24:0] dec_daddr,
+        input  logic dec_mre,
+        input  logic dec_mwe,
+        input  logic [31:0] op2,
+        output logic [31:0] wb_memdata,
         input  logic rxd,
         output logic txd,
         output logic rx_valid,
         output logic tx_ready 
     );
-    assign memdata = uart_en ? {24'b0,rd_d} : 32'hffffffff; //for cache!
+    always_ff @( posedge clk ) begin 
+        if(rst)begin
+            wb_memdata <=0;
+        end else begin
+            wb_memdata <= uart_en ? {24'b0,rd_d} : {7'b0, dec_daddr}; //for cache!
+        end
+    end
     //uart
     logic uart_en ;
-    assign uart_en = daddr == 25'b0;
+    assign uart_en = dec_daddr == 25'b0;
 
 
     logic [7:0] rdata;
@@ -36,7 +42,7 @@ module dmem_ram(
     logic rd_empty;
     uart_rx rx(.clk, .rst, .rxd, .rdata, .rvalid);
     fifo fifo_rx(.clk, .rst, .wr_d(rdata), .wr_en(rvalid),.wr_full(wr_full), .rd_d, .rd_en, .rd_empty(rd_empty));
-    assign rd_en = mre & uart_en & ~rd_empty;
+    assign rd_en = dec_mre & uart_en & ~rd_empty;
     assign rx_valid = ~rd_empty;
     
 
@@ -45,7 +51,7 @@ module dmem_ram(
     logic tx_full;
     logic tx_empty;
     uart_tx tx(.clk, .rst, .txd, .tdata, .tvalid(~tx_empty& tready), .tready);
-    fifo fifo_tx(.clk, .rst, .wr_d(res[7:0]), .wr_en(mwe & uart_en & ~tx_full), .wr_full(tx_full), .rd_d(tdata), .rd_en(~tx_empty & tready), .rd_empty(tx_empty));
+    fifo fifo_tx(.clk, .rst, .wr_d(op2[7:0]), .wr_en(dec_mwe & uart_en & ~tx_full), .wr_full(tx_full), .rd_d(tdata), .rd_en(~tx_empty & tready), .rd_empty(tx_empty));
     assign tx_ready = ~tx_full;
     //cache
 
@@ -56,7 +62,7 @@ module dmem_ram(
 //    logic [8:0] tag;
 //    logic [13:0] index;
 //    logic [1:0] offset;
-//    assign {tag, index, offset} = daddr;
+//    assign {tag, index, offset} = dec_daddr;
 //
 //    logic stall; // outputする
 //    logic arrive; // missしてたデータが届いたか
@@ -74,25 +80,25 @@ module dmem_ram(
 //        data_arrived = 0;
 //    end
 //
-//    // dram u1(daddr, arrive, data_arrived);
+//    // dram u1(dec_daddr, arrive, data_arrived);
 //
 //    always_ff @( posedge clk ) begin 
-//        if(mwe) begin
+//        if(exe_mwe) begin
 //            if (tag_array[index] == tag && valid_array[index]) begin
-//                cache[index] <= res;
+//                cache[index] <= op2;
 //            end else begin
 //                stall <= 1;
 //            end
 //        end
 //        if (arrive) begin 
-//            if (mwe) begin 
+//            if (exe_mwe) begin 
 //                cache[index] <= data_arrived;
 //            end 
 //            stall <= 0;
 //        end
 //    end
 //
-//    assign memdata = cache[index];
+//    assign wb_memdata = cache[index];
 //    `else
 //    // TODO: 2-way set associative
 //    `endif 

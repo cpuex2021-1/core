@@ -8,6 +8,7 @@ module PC(
     );
     logic [26:0] pc_reg;
     // enable 必要だよねそのうち
+    //assign pc = pc_reg;
     assign pc = pc_reg;
     always_ff @(posedge clk) begin
         if (rst) begin
