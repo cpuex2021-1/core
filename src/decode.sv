@@ -15,15 +15,13 @@ module decode(
         output logic dec_alu,
 
         //forwarding
-        input logic [31:0] alu_fw,
-        input logic [4:0]  alu_rd,
-        input logic        alu_rwe,alu_fwe,
+        input logic [31:0] alu_fwd,
 
         input  logic [31:0] wb_res,wb_memdata,
         input  logic wb_rwe, wb_fwe,wb_mre,
         input  logic [4:0] wb_rd,
 
-        input  logic stall
+        input  logic n_stall
         //input  logic rwe, fwe
     );
     logic [2:0] op, funct;
@@ -45,15 +43,19 @@ module decode(
     assign immIL = {{16{inst[21]}}, inst[21:6]}; //sign extend
     assign immSB = {{16{inst[26]}}, inst[26:11]};//sign extend
    
+    logic [31:0] rs1data_reg,rs2data_reg;
     logic [31:0] rs1data,rs2data;
+    logic [31:0] frs1data_reg, frs2data_reg;
     logic [31:0] frs1data, frs2data;
     //assign rwe = ~op[1]  ||  // add, mul,  addi, lw..
                 //(op == 3'b011 && funct[2] == 0) ||
                 //(op == 3'b110 && funct[2:1] == 2'b11) ; //feq .. fmv.x.w;
     logic [31:0] rddata;
     assign rddata = wb_mre? wb_memdata : wb_res;
-    register register (.clk, .rst, .rs1, .rs2, .rs1data, .rs2data, .wb_rd, .rddata, .we(wb_rwe & ~stall));   
-    register fregister(.clk, .rst, .rs1, .rs2, .rs1data(frs1data), .rs2data(frs2data), .wb_rd, .rddata, .we(wb_fwe & ~stall));
+    register register (.clk, .rst, .rs1, .rs2, .rs1data_reg, .rs2data_reg, .wb_rd, .rddata, .we(wb_rwe & n_stall));   
+    register fregister(.clk, .rst, .rs1, .rs2, .rs1data_reg(frs1data_reg), .rs2data_reg(frs2data_reg), .wb_rd, .rddata, .we(wb_fwe & n_stall));
+    assign rs1data = (rs1 == dec_rd && rs1 != 0 && dec_alu) ? alu_fwd : rs1data_reg; //条件違う気がする
+    assign rs2data = (rs2 == dec_rd && rs2 != 0 && dec_alu) ? alu_fwd : rs2data_reg; 
     logic [31:0] n_op1, n_op2;
     always_comb begin
         unique case (op) 
@@ -133,20 +135,22 @@ module decode(
             dec_daddr <= 0;
             dec_alu <= 1;
         end else begin
-            op1 <= n_op1;
-            op2 <= n_op2;
-            aluctl <= {inst[11], op, funct};
-            dec_rd  <= inst[26:22];
-            dec_mwe <= op==3'b110 && funct[2:1] == 2'b11;
-            dec_mre <= op==3'b101 && funct[2:1] == 2'b00;
-            dec_rwe <= ~op[1]  ||  // add, mul,  addi, lw..
-                    (op == 3'b011 && funct[2] == 0) ||
-                    (op == 3'b110 && funct[2:1] == 2'b11) ; //feq .. fmv.x.w;
-            dec_fwe <= op == 3'b010 || inst[5:0] == 6'b100011; // fadd... , fmv.w.x
-            dec_daddr <= (op==3'b110) ? SBaddr[24:0] : ILaddr[24:0];
-            dec_alu <= ~op[2] || // R style
-                        op == 3'b100 ||  //I
-                        {funct,op} == 6'b010101;  //LUI やっぱこれだけ汚いね
+            if(n_stall) begin
+                op1 <= n_op1;
+                op2 <= n_op2;
+                aluctl <= {inst[11], op, funct};
+                dec_rd  <= inst[26:22];
+                dec_mwe <= op==3'b110 && funct[2:1] == 2'b11;
+                dec_mre <= op==3'b101 && funct[2:1] == 2'b00;
+                dec_rwe <= ~op[1]  ||  // add, mul,  addi, lw..
+                        (op == 3'b011 && funct[2] == 0) ||
+                        (op == 3'b110 && funct[2:1] == 2'b11) ; //feq .. fmv.x.w;
+                dec_fwe <= op == 3'b010 || inst[5:0] == 6'b100011; // fadd... , fmv.w.x
+                dec_daddr <= (op==3'b110) ? SBaddr[24:0] : ILaddr[24:0];
+                dec_alu <= ~op[2] || // R style
+                            op == 3'b100 ||  //I
+                            {funct,op} == 6'b010101;  //LUI やっぱこれだけ汚いね
+            end
         end
     end
     

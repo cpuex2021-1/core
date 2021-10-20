@@ -21,11 +21,9 @@ module top(
     wire [31:0] wb_memdata;
     logic rx_valid, tx_ready;
     logic dec_alu;
-    logic stall;
+    logic n_stall;
 
-    logic [31:0] alu_fw;
-    logic [4:0] alu_rd;
-    logic       alu_rwe, alu_fwe;
+    logic [31:0] alu_fwd;
     logic exe_mre;
     logic exe_mwe;
 
@@ -33,23 +31,23 @@ module top(
     logic [4:0] wb_rd;
     logic [31:0] wb_res;
 
-    assign stall = ~rx_valid && dec_mre && dec_daddr==25'b0 || dec_mwe && dec_daddr==25'b0 && ~tx_ready;
+    assign n_stall = ~(~rx_valid && dec_mre && dec_daddr==25'b0 || dec_mwe && dec_daddr==25'b0 && ~tx_ready);
 
     //
-    PC       program_counter(.clk, .rst, .npc, .pc_en(~stall), .pc );
+    PC       program_counter(.clk, .rst, .npc, .n_stall, .pc );
     imem_ram imem(.clk, .rst, .pc, .inst);
     //IF <-> Dec & RF 
     decode decode(.clk, .rst, .inst,.pc, 
                  .op1, .op2, .aluctl, .dec_rd, .dec_daddr, .dec_mre, .dec_mwe, .dec_rwe, .dec_fwe, .dec_alu, // to exec
-                 .alu_fw, .alu_rd,   .alu_rwe, .alu_fwe,                                 // forwarding
+                 .alu_fwd,                                  // forwarding
                  .npc, 
                  .wb_res, .wb_memdata, .wb_rwe, .wb_fwe, .wb_mre, .wb_rd,
-                  .stall );
+                  .n_stall );
     // decode output ↓
     // Dec & RF <-> ALU + MA
-    ALU alu(.clk, .rst, .op1, .op2, .aluctl,  .wb_res);
-    dmem_ram dmem(.clk, .rst, .dec_daddr, .dec_mre, .dec_mwe , .op2, .wb_memdata, .rxd, .txd, .rx_valid, .tx_ready); //memdata
-    writeback wb(.clk, .rst, .dec_rd, .dec_rwe, .dec_fwe, .dec_mre,  .wb_rwe, .wb_fwe,  .wb_rd, .wb_mre);
+    ALU alu(.clk, .rst, .n_stall ,.op1, .op2, .aluctl,  .wb_res, .alu_fwd);
+    dmem_ram dmem(.clk, .rst, .n_stall ,.dec_daddr, .dec_mre, .dec_mwe , .op2, .wb_memdata, .rxd, .txd, .rx_valid, .tx_ready); //memdata
+    writeback wb(.clk, .rst,.n_stall, .dec_rd, .dec_rwe, .dec_fwe, .dec_mre,  .wb_rwe, .wb_fwe,  .wb_rd, .wb_mre);
     // exec output ↓
     // ALU + MA <-> WB
     // wb_rwe to dec

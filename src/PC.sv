@@ -3,7 +3,7 @@
 module PC(
         input  logic clk, rst,
         input  logic [26:0] npc,
-        input  logic pc_en,
+        input  logic n_stall,
         output logic [26:0] pc
     );
     logic [26:0] pc_reg;
@@ -14,7 +14,7 @@ module PC(
         if (rst) begin
             pc_reg <= 27'b0;
         end else begin
-            if(pc_en) begin
+            if(n_stall) begin
                 pc_reg <= npc;
             end
         end

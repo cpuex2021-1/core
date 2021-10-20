@@ -2,17 +2,21 @@
 
 module ALU(
         input  logic clk, rst,
+        input  logic n_stall,
         input  logic [31:0] op1, op2,
         input  logic [6:0]  aluctl,
-        output logic [31:0] wb_res
+        output logic [31:0] wb_res,
+        output logic [31:0] alu_fwd
     );
+    assign alu_fwd = n_res;
     always_ff @( posedge clk ) begin 
         if(rst) begin
             wb_res <= 0;
         end else begin
-            wb_res <= n_res;
+            if(n_stall) begin
+                wb_res <= n_res;
+            end
         end
-        
     end
     // arithmetic for op= 000 , 100 (including immediate)
     logic [31:0] add, sub, sll, srl, sra, slt, sltu, xorr, andd, orr;

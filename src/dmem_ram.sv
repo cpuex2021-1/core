@@ -12,6 +12,7 @@
 // addr != 0 -> cache DRAM
 module dmem_ram(
         input  logic clk,rst,
+        input  logic n_stall,
         input  logic [24:0] dec_daddr,
         input  logic dec_mre,
         input  logic dec_mwe,
@@ -26,7 +27,9 @@ module dmem_ram(
         if(rst)begin
             wb_memdata <=0;
         end else begin
-            wb_memdata <= uart_en ? {24'b0,rd_d} : {7'b0, dec_daddr}; //for cache!
+            if(n_stall) begin
+                wb_memdata <= uart_en ? {24'b0,rd_d} : {7'b0, dec_daddr}; //for cache!
+            end
         end
     end
     //uart

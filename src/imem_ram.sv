@@ -10,11 +10,10 @@ module imem_ram(
     initial begin
         $readmemh("inst.mem", mem,0, 1023);
     end
+    assign inst = rst ? 0 : mem[pc[11:2]];
     always_ff @( posedge clk ) begin 
         if(rst) begin
-            inst <= 0;
         end else begin
-            inst <= mem[pc[11:2]];
         end
     end
 

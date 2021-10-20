@@ -17,8 +17,22 @@ module simtop();
         rst = 1'b1;
         #25 rst = 1'b0;
 
-        
 
+        #15;
+        repeat(10) begin
+            #50 rxd = 0;
+            #50 rxd = 1;
+            #50 rxd = 0;
+            #50 rxd = 1;
+            #50 rxd = 0;
+            #50 rxd = 1;
+            #50 rxd = 0;
+            #50 rxd = 1;
+            #50 rxd = 0;
+            #50 rxd = 1;
+            #100;
+        end
+                
     end
 
     top top(.clk, .rst, .rxd, .txd);
