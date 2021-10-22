@@ -5,11 +5,13 @@ module decode(
         input  logic [31:0] inst,
         input  logic [26:0] pc,
 
-        output logic [31:0] op1, op2,
+        output logic [31:0] dec_op1, dec_op2,
+        output logic [6:0] dec_rs1, //rs1 can be always replaced by lw when data hazard occurs
+        output logic [6:0] dec_rs2, //op2 cannot be replaced when when data hazard seems to occur and op2 is from imm
+        output logic [31:0] dec_imm,
         output logic [6:0] aluctl,
-        output logic [4:0] dec_rd,
+        output logic [6:0] dec_rd,
         output logic dec_mre, dec_mwe,
-        output logic dec_rwe, dec_fwe,
         output logic [26:0] npc,
         output logic [24:0] dec_daddr,
         output logic dec_alu,
@@ -18,8 +20,8 @@ module decode(
         input logic [31:0] alu_fwd,
 
         input  logic [31:0] wb_res,wb_memdata,
-        input  logic wb_rwe, wb_fwe,wb_mre,
-        input  logic [4:0] wb_rd,
+        input  logic wb_mre,
+        input  logic [6:0] wb_rd,
 
         input  logic n_stall
         //input  logic rwe, fwe
@@ -28,16 +30,19 @@ module decode(
     assign op    = inst[2:0];
     assign funct = inst[5:3];
 
-    //assign n_aluctl = {inst[11], op, funct};   // inst[11] : add subとかの区別
-                                                        // {op, funct} にすると 10進数で考えて0,1,2...ってなってきれい
-                                                        
-    //assign dec_mwe = op==3'b110 && funct[2:1] == 2'b11;
-    //assign dec_mre = op==3'b101 && funct[2:1] == 2'b00;
     
-    logic [4:0] rs1, rs2;
-    assign rs1 = inst[31:27];
-    assign rs2 = inst[10:6];
-    //assign rd  = inst[26:22];
+    logic rs2_valid;
+    assign rs2_valid = ~op[1] || op==3'b110; //rs2 reg is read
+
+    logic fromfreg ;
+    assign fromfreg = op == 3'b010 || {funct[2], op} == 4'b0011; //floatiing point and fmv.w.x
+
+    logic tofreg ;
+    assign tofreg = op==3'b010 || {funct[2], op} == 4'b1011; //may be illegal;
+
+    logic [6:0] rs1, rs2;
+    assign rs1 = {1'b1,fromfreg,inst[31:27]}; //rs1 is always valid
+    assign rs2 = {rs2_valid,fromfreg,inst[10:6]};
     
     logic [31:0] immIL, immSB;
     assign immIL = {{16{inst[21]}}, inst[21:6]}; //sign extend
@@ -52,10 +57,11 @@ module decode(
                 //(op == 3'b110 && funct[2:1] == 2'b11) ; //feq .. fmv.x.w;
     logic [31:0] rddata;
     assign rddata = wb_mre? wb_memdata : wb_res;
-    register register (.clk, .rst, .rs1, .rs2, .rs1data_reg, .rs2data_reg, .wb_rd, .rddata, .we(wb_rwe & n_stall));   
-    register fregister(.clk, .rst, .rs1, .rs2, .rs1data_reg(frs1data_reg), .rs2data_reg(frs2data_reg), .wb_rd, .rddata, .we(wb_fwe & n_stall));
+    register register (.clk, .rst, .rs1(rs1[5:0]), .rs2(rs1[5:0]), .rs1data_reg, .rs2data_reg, .wb_rd, .rddata, .we( n_stall));   
+    fregister fregister(.clk, .rst, .rs1(rs1[5:0]), .rs2(rs2[5:0]), .frs1data_reg, .frs2data_reg, .wb_rd, .rddata, .we( n_stall));
     assign rs1data = (rs1 == dec_rd && rs1 != 0 && dec_alu) ? alu_fwd : rs1data_reg; //条件違う気がする
     assign rs2data = (rs2 == dec_rd && rs2 != 0 && dec_alu) ? alu_fwd : rs2data_reg; 
+    // for floting point!
     logic [31:0] n_op1, n_op2;
     always_comb begin
         unique case (op) 
@@ -124,28 +130,28 @@ module decode(
 
     always_ff @( posedge clk ) begin 
         if(rst)begin
-            op1 <= 0;
-            op2 <= 0;
+            dec_op1 <= 0;
+            dec_op2 <= 0;
+            dec_rs1 <= 0;
+            dec_rs2 <= 0;
+            dec_imm <=0;
             aluctl <= 0;
             dec_rd <= 0;
             dec_mwe <= 0;
             dec_mre <= 0;
-            dec_rwe <= 0;
-            dec_fwe <= 0;
             dec_daddr <= 0;
             dec_alu <= 1;
         end else begin
             if(n_stall) begin
-                op1 <= n_op1;
-                op2 <= n_op2;
+                dec_op1 <= n_op1;
+                dec_op2 <= n_op2;
+                dec_rs1 <= rs1;
+                dec_rs2 <= rs2;
+                dec_imm <= op == 3'b110 ? immSB : immIL;
                 aluctl <= {inst[11], op, funct};
-                dec_rd  <= inst[26:22];
+                dec_rd  <= {op[2:1] != 2'b11, tofreg, inst[26:22]}; //rd valid when  beq nor jump
                 dec_mwe <= op==3'b110 && funct[2:1] == 2'b11;
                 dec_mre <= op==3'b101 && funct[2:1] == 2'b00;
-                dec_rwe <= ~op[1]  ||  // add, mul,  addi, lw..
-                        (op == 3'b011 && funct[2] == 0) ||
-                        (op == 3'b110 && funct[2:1] == 2'b11) ; //feq .. fmv.x.w;
-                dec_fwe <= op == 3'b010 || inst[5:0] == 6'b100011; // fadd... , fmv.w.x
                 dec_daddr <= (op==3'b110) ? SBaddr[24:0] : ILaddr[24:0];
                 dec_alu <= ~op[2] || // R style
                             op == 3'b100 ||  //I
