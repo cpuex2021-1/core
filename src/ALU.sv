@@ -5,8 +5,15 @@ module ALU(
         input  logic n_stall,
         input  logic [31:0] op1, op2,
         input  logic [6:0]  aluctl,
+        input  logic [6:0] dec_branch,  // {do_branch, geu, ltu, ge, lt ,ne, eq}
+        input  logic [26:0] dec_pc,
+        input  logic [31:0] dec_imm,
         output logic [31:0] wb_res,
-        output logic [31:0] alu_fwd
+        output logic [31:0] alu_fwd,
+        output logic [26:0] npc,
+        output logic npc_enn,
+        output logic flush,
+        output logic [24:0] daddr
     );
     assign alu_fwd = n_res;
     always_ff @( posedge clk ) begin 
@@ -76,14 +83,6 @@ module ALU(
     logic [31:0] lui;
     assign lui = {op2[15:0], op1[15:0]};
     
-    // branch conditions
-    logic beq, bne, blt, bge, bltu, bgeu;
-    assign beq = op1 == op2;
-    assign bne = op1 != op2;
-    assign blt = op1 <  op2;
-    assign bge = op1 >= op2;
-    assign bltu= $unsigned(op1) < $unsigned(op2);
-    assign bgeu= $unsigned(op1) >=$unsigned(op2);
 
 
     logic [31:0] n_res;
@@ -162,6 +161,30 @@ module ALU(
             6'b111110 :  n_res = 32'b0;    //invalid
             6'b111111 :  n_res = 32'b0;    //invalid
         endcase 
+    end
+
+    logic [5:0] cond;
+    logic eq, lt,ltu;
+    logic branch;
+    logic [26:0] baddr;
+    logic [31:0] daddr_;
+    assign daddr_ = op1 + dec_imm;
+
+    always_comb begin 
+        eq = op1 == op2;
+        lt = op1 < op2;
+        ltu= $unsigned(op1) < $unsigned(op2);
+        cond[0] = eq;
+        cond[1] = ~eq;
+        cond[2] = lt;
+        cond[3] = ~lt;
+        cond[4] = ltu;
+        cond[5] = ~ltu;
+        npc_enn = dec_branch[6] && |(cond & dec_branch[5:0]);
+        flush = npc_enn;
+        baddr = dec_pc + dec_imm[26:0];
+        npc = baddr;
+        daddr =daddr_[24:0];
     end
 
 endmodule

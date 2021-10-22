@@ -77,7 +77,7 @@ input wire 	      ACLK,
     input  wire 				 M_AXI_RLAST,
     //input  wire [C_M_AXI_RUSER_WIDTH-1:0] 	 M_AXI_RUSER,
     input  wire 				 M_AXI_RVALID,
-    output wire 				 M_AXI_RREADY,
+    output wire 				 M_AXI_RREADY
 
     );
 endmodule

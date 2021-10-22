@@ -12,9 +12,9 @@ module decode(
         output logic [6:0] aluctl,
         output logic [6:0] dec_rd,
         output logic dec_mre, dec_mwe,
-        output logic [26:0] npc,
-        output logic [24:0] dec_daddr,
         output logic dec_alu,
+        output logic [6:0] dec_branch,
+        output logic [26:0] dec_pc,
 
         //forwarding
         input logic [31:0] alu_fwd,
@@ -23,7 +23,8 @@ module decode(
         input  logic wb_mre,
         input  logic [6:0] wb_rd,
 
-        input  logic n_stall
+        input  logic n_stall,
+        input  logic flush
         //input  logic rwe, fwe
     );
     logic [2:0] op, funct;
@@ -59,8 +60,10 @@ module decode(
     assign rddata = wb_mre? wb_memdata : wb_res;
     register register (.clk, .rst, .rs1(rs1[5:0]), .rs2(rs1[5:0]), .rs1data_reg, .rs2data_reg, .wb_rd, .rddata, .we( n_stall));   
     fregister fregister(.clk, .rst, .rs1(rs1[5:0]), .rs2(rs2[5:0]), .frs1data_reg, .frs2data_reg, .wb_rd, .rddata, .we( n_stall));
-    assign rs1data = (rs1 == dec_rd && rs1 != 0 && dec_alu) ? alu_fwd : rs1data_reg; //条件違う気がする
-    assign rs2data = (rs2 == dec_rd && rs2 != 0 && dec_alu) ? alu_fwd : rs2data_reg; 
+    assign rs1data = (rs1 == dec_rd && rs1 != 0 && dec_alu) ? alu_fwd : 
+                    (rs1 == wb_rd && rs1 !=0) ? rddata : rs1data_reg; //条件違う気がする
+    assign rs2data = (rs2 == dec_rd && rs2 != 0 && dec_alu) ? alu_fwd :
+                    (rs1 == wb_rd && rs2 != 0 && rs2[6])? rddata : rs2data_reg; 
     // for floting point!
     logic [31:0] n_op1, n_op2;
     always_comb begin
@@ -94,42 +97,16 @@ module decode(
     //for branch 
     // this may be critical path when multicycled  but for simplicity now calculating in decode stage
 
-    logic branch ;
     logic jmp;
-    assign branch = op==3'b110 && ~&(funct[2:1]);  // ==定値　って論理にしたほうが早いのかな   ~&(funct[2:1]) :store は違う
     assign jmp = op==3'b111;                       // 同上
 
-    logic eq,ne, lt, ge, ltu, geu;
-    logic less, uless;
-    assign less  = rs1data < rs2data;
-    assign uless = $unsigned(rs1data) < $unsigned(rs2data);
 
-    assign eq  = ~|(rs1data ^ rs2data) && (funct == 3'b000);
-    assign ne  = |(rs1data ^ rs2data)  && (funct == 3'b001);
-    assign lt  = less                  && (funct == 3'b010);
-    assign ge  = ~less                 && (funct == 3'b011);
-    assign ltu = uless                 && (funct == 3'b100);
-    assign geu = ~uless                && (funct == 3'b101);
-    logic match;
-    assign match = eq | ne | lt | ge | ltu | geu;
 
-    logic [26:0] baddr ;
     //assign baddr  = $signed(pc) + $signed({immSB[24:0], 2'b00});
-    assign baddr  = $signed(pc) + $signed(immSB[26:0]);
-    always_comb begin
-        case (1'b1)
-            (branch & match): npc = baddr;
-            (jmp)           : npc = jaddr;
-            default         : npc = pc + 4;
-        endcase
-    end
     
-    logic [31:0] SBaddr, ILaddr;
-    assign SBaddr = rs1data + immSB;
-    assign ILaddr = rs1data + immIL;
 
     always_ff @( posedge clk ) begin 
-        if(rst)begin
+        if(rst || flush)begin
             dec_op1 <= 0;
             dec_op2 <= 0;
             dec_rs1 <= 0;
@@ -139,8 +116,9 @@ module decode(
             dec_rd <= 0;
             dec_mwe <= 0;
             dec_mre <= 0;
-            dec_daddr <= 0;
             dec_alu <= 1;
+            dec_branch <= 0;
+            dec_pc <= 0;
         end else begin
             if(n_stall) begin
                 dec_op1 <= n_op1;
@@ -152,10 +130,17 @@ module decode(
                 dec_rd  <= {op[2:1] != 2'b11, tofreg, inst[26:22]}; //rd valid when  beq nor jump
                 dec_mwe <= op==3'b110 && funct[2:1] == 2'b11;
                 dec_mre <= op==3'b101 && funct[2:1] == 2'b00;
-                dec_daddr <= (op==3'b110) ? SBaddr[24:0] : ILaddr[24:0];
                 dec_alu <= ~op[2] || // R style
                             op == 3'b100 ||  //I
                             {funct,op} == 6'b010101;  //LUI やっぱこれだけ汚いね
+                dec_branch[0] <= funct==3'b000;//eq
+                dec_branch[1] <= funct==3'b001;//ne
+                dec_branch[2] <= funct==3'b010;//lt
+                dec_branch[3] <= funct==3'b011;//ge
+                dec_branch[4] <= funct==3'b100;//ltu
+                dec_branch[5] <= funct==3'b101;//geu
+                dec_branch[6] <= op==3'b110 && ~&funct[2:1];
+                dec_pc <= pc;
             end
         end
     end

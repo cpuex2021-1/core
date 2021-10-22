@@ -13,7 +13,7 @@
 module dmem_ram(
         input  logic clk,rst,
         input  logic n_stall,
-        input  logic [24:0] dec_daddr,
+        input  logic [24:0] daddr,
         input  logic dec_mre,
         input  logic dec_mwe,
         input  logic [31:0] op2,
@@ -28,13 +28,13 @@ module dmem_ram(
             wb_memdata <=0;
         end else begin
             if(n_stall) begin
-                wb_memdata <= uart_en ? {24'b0,rd_d} : {7'b0, dec_daddr}; //for cache!
+                wb_memdata <= uart_en ? {24'b0,rd_d} : {7'b0, daddr}; //for cache!
             end
         end
     end
     //uart
     logic uart_en ;
-    assign uart_en = dec_daddr == 25'b0;
+    assign uart_en = daddr == 25'b0;
 
 
     logic [7:0] rdata;

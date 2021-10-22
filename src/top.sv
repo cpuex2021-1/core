@@ -13,10 +13,16 @@ module top(
     wire [6:0] aluctl;
     wire [26:0] pc;
     wire [26:0] npc;
+    logic npc_enn;
+    logic flush;
+
+    logic [6:0] dec_branch;
+    logic [26:0] dec_pc;
 
     wire [24:0] dec_daddr;
     logic dec_mre;
     logic dec_mwe;
+    logic [24:0] daddr;
     wire [31:0] wb_memdata;
     logic rx_valid, tx_ready;
     logic dec_alu;
@@ -29,24 +35,24 @@ module top(
     logic [6:0] wb_rd;
     logic [31:0] wb_res;
 
-    assign n_stall = ~(~rx_valid && dec_mre && dec_daddr==25'b0 || dec_mwe && dec_daddr==25'b0 && ~tx_ready);
+    assign n_stall = ~(~rx_valid && dec_mre && daddr==25'b0 || dec_mwe && daddr==25'b0 && ~tx_ready);
 
     //
-    PC       program_counter(.clk, .rst, .npc, .n_stall, .pc );
+    PC       program_counter(.clk, .rst, .npc, .n_stall, .pc, .npc_enn );
     imem_ram imem(.clk, .rst, .pc, .inst);
     //IF <-> Dec & RF 
     decode decode(.clk, .rst, .inst,.pc, 
-                 .dec_op1, .dec_op2,.dec_rs1, .dec_rs2, .dec_imm,  .aluctl, .dec_rd, .dec_daddr, .dec_mre, .dec_mwe, .dec_alu, // to exec
+                 .dec_op1, .dec_op2,.dec_rs1, .dec_rs2, .dec_imm,  .aluctl, .dec_rd,  .dec_mre, .dec_mwe, .dec_alu, // to exec
                  .alu_fwd,                                  // forwarding
-                 .npc, 
+                 .dec_branch, .dec_pc,
                  .wb_res, .wb_memdata, .wb_mre, .wb_rd,
-                  .n_stall );
+                  .n_stall, .flush);
     // decode output ↓
     // Dec & RF <-> ALU + MA
 
     exe_fwd fwd(.dec_op1, .dec_op2, .wb_memdata, .dec_rs1, .dec_rs2, .wb_rd, .wb_mre, .op1, .op2);
-    ALU alu(.clk, .rst, .n_stall ,.op1, .op2, .aluctl,  .wb_res, .alu_fwd);
-    dmem_ram dmem(.clk, .rst, .n_stall ,.dec_daddr, .dec_mre, .dec_mwe , .op2, .wb_memdata, .rxd, .txd, .rx_valid, .tx_ready); //memdata
+    ALU alu(.clk, .rst, .n_stall ,.op1, .op2, .aluctl, .dec_branch, .dec_pc, .dec_imm, .wb_res, .daddr, .alu_fwd, .npc, .npc_enn,.flush);
+    dmem_ram dmem(.clk, .rst, .n_stall ,.daddr, .dec_mre, .dec_mwe , .op2, .wb_memdata, .rxd, .txd, .rx_valid, .tx_ready); //memdata
     writeback wb(.clk, .rst,.n_stall, .dec_rd,  .dec_mre,    .wb_rd, .wb_mre);
     // exec output ↓
     // ALU + MA <-> WB
