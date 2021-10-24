@@ -13,7 +13,7 @@ module ALU(
         output logic [26:0] npc,
         output logic npc_enn,
         output logic flush,
-        output logic [24:0] daddr
+        output logic [29:0] daddr
     );
     assign alu_fwd = n_res;
     always_ff @( posedge clk ) begin 
@@ -184,7 +184,7 @@ module ALU(
         flush = npc_enn;
         baddr = dec_pc + dec_imm[26:0];
         npc = baddr;
-        daddr =daddr_[24:0];
+        daddr = daddr_[29:0];
     end
 
 endmodule

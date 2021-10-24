@@ -18,20 +18,120 @@ module simtop();
         #25 rst = 1'b0;
 
 
+//uartやるtaskほしいな
         #15;
-        repeat(10) begin
+        //repeat(30) begin
+            #50 rxd = 0;
             #50 rxd = 0;
             #50 rxd = 1;
             #50 rxd = 0;
-            #50 rxd = 1;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
             #50 rxd = 0;
             #50 rxd = 1;
+
+            #100;
+
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
             #50 rxd = 0;
             #50 rxd = 1;
+
+            #100;
+
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 1;
+
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
             #50 rxd = 0;
             #50 rxd = 1;
             #100;
-        end
+
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 1;
+
+            #100;
+
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 1;
+            #50 rxd = 1;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 1;
+            #100;
+
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 1;
+            #100;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 1;
+            #100;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 0;
+            #50 rxd = 1;
+            #50 rxd = 1;
+            #50 rxd = 1;
+            #50 rxd = 1;
+            #50 rxd = 1;
+            #50 rxd = 1;
+            #100;
+
+
+
+        //end
                 
     end
 

@@ -12,7 +12,6 @@ module decode(
         output logic [6:0] aluctl,
         output logic [6:0] dec_rd,
         output logic dec_mre, dec_mwe,
-        output logic dec_alu,
         output logic [6:0] dec_branch,
         output logic [26:0] dec_pc,
 
@@ -56,14 +55,15 @@ module decode(
     //assign rwe = ~op[1]  ||  // add, mul,  addi, lw..
                 //(op == 3'b011 && funct[2] == 0) ||
                 //(op == 3'b110 && funct[2:1] == 2'b11) ; //feq .. fmv.x.w;
+    logic dec_alu;
     logic [31:0] rddata;
     assign rddata = wb_mre? wb_memdata : wb_res;
-    register register (.clk, .rst, .rs1(rs1[5:0]), .rs2(rs1[5:0]), .rs1data_reg, .rs2data_reg, .wb_rd, .rddata, .we( n_stall));   
+    register register (.clk, .rst, .rs1(rs1[5:0]), .rs2(rs2[5:0]), .rs1data_reg, .rs2data_reg, .wb_rd, .rddata, .we( n_stall));   
     fregister fregister(.clk, .rst, .rs1(rs1[5:0]), .rs2(rs2[5:0]), .frs1data_reg, .frs2data_reg, .wb_rd, .rddata, .we( n_stall));
-    assign rs1data = (rs1 == dec_rd && rs1 != 0 && dec_alu) ? alu_fwd : 
+    assign rs1data = (rs1 == dec_rd && rs1[4:0] != 0 && dec_alu) ? alu_fwd : 
                     (rs1 == wb_rd && rs1 !=0) ? rddata : rs1data_reg; //条件違う気がする
-    assign rs2data = (rs2 == dec_rd && rs2 != 0 && dec_alu) ? alu_fwd :
-                    (rs1 == wb_rd && rs2 != 0 && rs2[6])? rddata : rs2data_reg; 
+    assign rs2data = (rs2 == dec_rd && rs2[4:0] != 0 && dec_alu) ? alu_fwd :
+                    (rs2 == wb_rd && rs2[4:0] != 0 && rs2[6])? rddata : rs2data_reg; 
     // for floting point!
     logic [31:0] n_op1, n_op2;
     always_comb begin

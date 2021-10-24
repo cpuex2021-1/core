@@ -3,8 +3,10 @@
 module top(
         input  logic clk,rst,
         input  logic rxd,
-        output logic txd
+        output logic txd,
+        output logic [15:0] pc_
     );
+    assign pc_ = pc[15:0];
     wire [31:0] inst;
     wire [6:0] dec_rd;  // {write enable(1), to freg(1), regiter number(5)}
     wire [31:0] dec_op1, dec_op2;
@@ -13,19 +15,17 @@ module top(
     wire [6:0] aluctl;
     wire [26:0] pc;
     wire [26:0] npc;
-    logic npc_enn;
+    (*mark_debug = "true"*)logic npc_enn;
     logic flush;
 
     logic [6:0] dec_branch;
     logic [26:0] dec_pc;
 
-    wire [24:0] dec_daddr;
     logic dec_mre;
     logic dec_mwe;
-    logic [24:0] daddr;
+    logic [29:0] daddr;
     wire [31:0] wb_memdata;
     logic rx_valid, tx_ready;
-    logic dec_alu;
     logic n_stall;
 
     logic [31:0] alu_fwd;
@@ -35,14 +35,14 @@ module top(
     logic [6:0] wb_rd;
     logic [31:0] wb_res;
 
-    assign n_stall = ~(~rx_valid && dec_mre && daddr==25'b0 || dec_mwe && daddr==25'b0 && ~tx_ready);
+    assign n_stall = ~(~rx_valid && dec_mre && daddr==30'b0 || dec_mwe && daddr==30'b0 && ~tx_ready);
 
     //
     PC       program_counter(.clk, .rst, .npc, .n_stall, .pc, .npc_enn );
-    imem_ram imem(.clk, .rst, .pc, .inst);
+    imem_ram imem(.clk, .rst, .pc, .inst, .op2, .daddr, .dec_mwe);
     //IF <-> Dec & RF 
     decode decode(.clk, .rst, .inst,.pc, 
-                 .dec_op1, .dec_op2,.dec_rs1, .dec_rs2, .dec_imm,  .aluctl, .dec_rd,  .dec_mre, .dec_mwe, .dec_alu, // to exec
+                 .dec_op1, .dec_op2,.dec_rs1, .dec_rs2, .dec_imm,  .aluctl, .dec_rd,  .dec_mre, .dec_mwe, // to exec
                  .alu_fwd,                                  // forwarding
                  .dec_branch, .dec_pc,
                  .wb_res, .wb_memdata, .wb_mre, .wb_rd,

@@ -13,7 +13,7 @@ module exe_fwd(
     // same register number
     always_comb begin 
 
-        op1 = dec_rs1[6] && dec_rs1 ==  wb_rd && wb_mre ? wb_memdata : dec_op1;
-        op2 = dec_rs2[6] && dec_rs2 ==  wb_rd && wb_mre ? wb_memdata : dec_op2;
+        op1 = dec_rs1[6] && (dec_rs1 ==  wb_rd) && wb_mre ? wb_memdata : dec_op1;
+        op2 = dec_rs2[6] && (dec_rs2 ==  wb_rd) && wb_mre ? wb_memdata : dec_op2;
     end
 endmodule

@@ -25,7 +25,7 @@ module fifo(
 
     always_comb begin 
         n_rd_addr = rd_en ? rd_addr + 1 : rd_addr;
-        n_rd_empty = rd_addr == wr_addr;
+        n_rd_empty = rd_addr == wr_addr || rd_en && (rd_addr+1) == wr_addr;
 
         n_wr_addr = wr_en ? wr_addr + 1 : wr_addr;
         dif = rd_addr - wr_addr;
