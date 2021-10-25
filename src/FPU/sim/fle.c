@@ -44,7 +44,7 @@ int lt(int x, int y){
     //printf("x:%d xs:%d xe:%d xm:%d\n", x,xs,xe,xm);
     //printf("y:%d ys:%d ye:%d ym:%d\n", y,ys,ye,ym);
     //printf("el:%d eeq:%d mL:%d absl:%d pp:%d np:%d nn:%d\n", el,eeq,ml,absl,pp,np,nn);
-    return (pp&&absl) || np || (nn && ~absl && ~emeq);
+    return (pp&&absl) || np || (nn && ~absl && ~emeq) || x==y;
 }
 
 
@@ -55,7 +55,7 @@ int main(){
         b.i = rand();
         if(!invalid_float(a.i, b.i)){
             int res = lt(a.i, b.i);
-            int ans = a.f < b.f;
+            int ans = a.f <= b.f;
             if(ans != res){
                 printf("x:%f y:%f\n", a.f, b.f);
                 printf("ans:%d res:%d\n", ans, res);

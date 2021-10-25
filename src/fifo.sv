@@ -47,7 +47,8 @@ module fifo(
             wr_addr <= n_wr_addr;
             rd_empty <=  n_rd_empty;
             wr_full <= n_wr_full;
-            rd_d <= (rd_en) ? mem[rd_addr+1] : mem[rd_addr];
+            //rd_d <= (rd_en) ? mem[rd_addr+1] : mem[rd_addr];
+            rd_d <= mem[rd_addr];
         end
         
     end

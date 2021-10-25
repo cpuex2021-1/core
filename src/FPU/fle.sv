@@ -31,9 +31,9 @@ module fle(
 
         absl = el | (eeq & ml);
 
-        pp = xs & ys;  // x y positive
+        pp = ~(xs | ys);  // x y positive
         np = xs & ~ys; //x negative y positive
-        nn = ~(xs | ys);// x y negative
+        nn = xs ^ ys;// x y negative
 
         emeq = ~| (x[30:0] ^ y[30:0]);
 

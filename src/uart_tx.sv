@@ -5,7 +5,7 @@ module uart_tx (
     output logic tready,
     output logic txd
 );
-    parameter WAIT_DIV = 5;
+    parameter WAIT_DIV = 608;
     localparam WAIT_LEN = $clog2(WAIT_DIV);
 
     typedef enum{
