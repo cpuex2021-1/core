@@ -7,7 +7,6 @@ module simtop();
     parameter STEP = 50; // clk(#10) * 5
 
     task uart(input logic [7:0] data);
-
     begin
     #STEP rxd = 0;
     #STEP rxd = data[0];
@@ -35,7 +34,7 @@ module simtop();
         #25 rst = 1'b0;
 
 
-//uartやるtaskほしいな
+
         #15;
         //repeat(30) begin
 
