@@ -4,7 +4,47 @@ module top(
         input  logic clk,rst,
         input  logic rxd,
         output logic txd,
-        output logic [15:0] pc_
+        output logic [15:0] pc_,
+        output logic  [27-1:0]      M_AXI_AWADDR,
+        output logic  [8-1:0] 			 M_AXI_AWLEN,
+        output logic  [3-1:0] 			 M_AXI_AWSIZE,
+        output logic  [2-1:0] 			 M_AXI_AWBURST,
+        output logic  				 M_AXI_AWLOCK,
+        output logic  [4-1:0] 			 M_AXI_AWCACHE,
+        output logic  [3-1:0] 			 M_AXI_AWPROT,
+        output logic [4-1:0] 			 M_AXI_AWQOS,
+        output logic                    M_AXI_AWVALID,
+        input  logic                    M_AXI_AWREADY,
+        
+        output logic [128-1:0] 	 M_AXI_WDATA,
+        output logic [16-1:0] 	 M_AXI_WSTRB,
+        output logic 				 M_AXI_WLAST,
+        output logic 				 M_AXI_WVALID,
+        input  logic 				 M_AXI_WREADY,
+        
+        // Master Interface Write Response
+        input  logic  [2-1:0] 			 M_AXI_BRESP,
+        input  logic  				 M_AXI_BVALID,
+        output logic  				 M_AXI_BREADY,
+        
+        // Master Interface Read Address
+        output logic [27-1:0] 	 M_AXI_ARADDR,
+        output logic [8-1:0] 			 M_AXI_ARLEN,
+        output logic [3-1:0] 			 M_AXI_ARSIZE,
+        output logic [2-1:0] 			 M_AXI_ARBURST,
+        output logic [2-1:0] 			 M_AXI_ARLOCK,
+        output logic [4-1:0] 			 M_AXI_ARCACHE,
+        output logic [3-1:0] 			 M_AXI_ARPROT,
+        output logic [4-1:0] 			 M_AXI_ARQOS,
+        output logic 				 M_AXI_ARVALID,
+        input  logic 				 M_AXI_ARREADY,
+        
+        // Master Interface Read Data 
+        input  logic [128-1:0] 	 M_AXI_RDATA,
+        input  logic [2-1:0] 			 M_AXI_RRESP,
+        input  logic 				 M_AXI_RLAST,
+        input  logic 				 M_AXI_RVALID,
+        output logic 				 M_AXI_RREADY
     );
     assign pc_ = pc[15:0];
     wire [31:0] inst;
@@ -52,7 +92,7 @@ module top(
 
     exe_fwd fwd(.dec_op1, .dec_op2, .wb_memdata, .dec_rs1, .dec_rs2, .wb_rd, .wb_mre, .op1, .op2);
     ALU alu(.clk, .rst, .n_stall ,.op1, .op2, .aluctl, .dec_branch, .dec_pc, .dec_imm, .wb_res, .daddr, .alu_fwd, .npc, .npc_enn,.flush);
-    dmem_ram dmem(.clk, .rst, .n_stall ,.daddr, .dec_mre, .dec_mwe , .op2, .wb_memdata, .rxd, .txd, .rx_valid, .tx_ready); //memdata
+    dmem_ram dmem(.clk, .rst, .n_stall ,.daddr, .dec_mre, .dec_mwe , .op2, .wb_memdata, .rxd, .txd, .rx_valid, .tx_ready, .*); //memdata
     writeback wb(.clk, .rst,.n_stall, .dec_rd,  .dec_mre,    .wb_rd, .wb_mre);
     // exec output ↓
     // ALU + MA <-> WB
