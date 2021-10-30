@@ -1,9 +1,10 @@
 `timescale 1ns / 1ps
-
+import axi_vip_pkg::*;
+import design_1_axi_vip_0_0_pkg::*;
 module simtop();
     logic clk, rst;
     logic rxd, txd;
-
+    logic [15:0] LED;
     parameter STEP = 50; // clk(#10) * 5
 
     task uart(input logic [7:0] data);
@@ -22,43 +23,26 @@ module simtop();
     endtask
     
     always  begin
-        clk = 1'b1;
-        #5 clk = 1'b0;
+        clk = 1'b0;
+        #5 clk = 1'b1;
         #5;
     end
 
         logic [7:0] data;
     initial begin
-        rxd = 1;
-        rst = 1'b1;
-        #25 rst = 1'b0;
-
-
-
-        #15;
+        rst = 1'b0;
+        #13 rst = 1'b1;        
         //repeat(30) begin
 
-uart(8'h04);
-uart(8'h04);
-uart(8'h0c);
-uart(8'h40);
-uart(8'h01);
-uart(8'h76);
-uart(8'h01);
-uart(8'h00);
-uart(8'h00);
-uart(8'h44);
-uart(8'h00);
-uart(8'h40);
-uart(8'h29);
-uart(8'h06);
-uart(8'hc0);
-uart(8'hff);
-uart(8'h07);
 
         //end
                 
     end
 
-    top top(.clk, .rst, .rxd, .txd);
+    design_1_wrapper dut(.sys_clock (clk), .reset_0 (rst), .rxd(rxd), .txd(txd), .LED);
+    design_1_axi_vip_0_0_slv_mem_t agent;
+    initial begin
+        agent = new("AXI Slave Agent", dut.design_1_i.axi_vip_0.inst.IF);
+        agent.start_slave();
+    end
 endmodule

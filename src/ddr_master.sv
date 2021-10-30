@@ -112,7 +112,7 @@ module ddr_master
    
     
      always_ff @(posedge clk) begin
-        if (~rst) begin
+        if (rst) begin
             wr_ready <= 1'b1;
             rd_aready <= 1'b1;
             rd_data <= 128'b0;

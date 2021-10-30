@@ -182,7 +182,7 @@ module ALU(
         cond[5] = ~ltu;
         npc_enn = dec_branch[6] && |(cond & dec_branch[5:0]);
         flush = npc_enn;
-        baddr = dec_pc + dec_imm[26:0];
+        baddr = dec_pc + {dec_imm[24:0],2'b00};
         npc = baddr;
         daddr = daddr_[29:0];
     end

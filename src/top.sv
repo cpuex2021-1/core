@@ -67,6 +67,8 @@ module top(
     wire [31:0] wb_memdata;
     logic rx_valid, tx_ready;
     logic n_stall;
+    logic uart_nstall;
+    logic cache_nstall;
 
     logic [31:0] alu_fwd;
 
@@ -75,7 +77,7 @@ module top(
     logic [6:0] wb_rd;
     logic [31:0] wb_res;
 
-    assign n_stall = ~(~rx_valid && dec_mre && daddr==30'b0 || dec_mwe && daddr==30'b0 && ~tx_ready);
+    assign n_stall = uart_nstall && cache_nstall;
 
     //
     PC       program_counter(.clk, .rst, .npc, .n_stall, .pc, .npc_enn );

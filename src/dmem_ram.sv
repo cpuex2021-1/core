@@ -22,7 +22,9 @@ module dmem_ram(
         input  logic rxd,
         output logic txd,
         output logic rx_valid,
-        output logic tx_ready ,
+        output logic tx_ready,
+        output logic uart_nstall,
+        output logic cache_nstall,
 // Master Interface Write Address
     output logic  [27-1:0]      M_AXI_AWADDR,
     output logic  [8-1:0] 			 M_AXI_AWLEN,
@@ -71,16 +73,23 @@ module dmem_ram(
 
 
     );
+    logic take_uart;
     always_ff @( posedge clk ) begin 
         if(rst)begin
-            wb_memdata <=0;
+            //wb_memdata <=0;
+            take_uart <= 0;
         end else begin
-            if(n_stall) begin
-                wb_memdata <= uart_en ? {24'b0,rd_d} : {5'b0, daddr[24:0], 2'b0}; //for cache!
-            end
+            take_uart <= uart_en;
+//            if(n_stall) begin
+//                wb_memdata <= uart_en ? {24'b0,rd_d} : cache_data; //for cache!
+//            end
         end
     end
+    assign wb_memdata = take_uart ? {24'b0, rd_d} : cache_data;
+
+
     //uart
+    assign uart_nstall = ~(uart_en && (dec_mre && ~rx_valid || dec_mwe && ~tx_ready));
     logic uart_en ;
     assign uart_en = daddr == 30'b0;
     logic dmem_en ;
@@ -118,7 +127,7 @@ module dmem_ram(
     logic wr_ready;
 
     // reading operation issuing
-    logic [26:0]  rd_addr;
+    logic [26:0]  rd_addr; // always {daddr[22:0] ,4'b0000}
     logic rd_avalid;
     logic rd_aready;
 
@@ -131,7 +140,7 @@ module dmem_ram(
 
 
     `ifndef SET_ASSOC
-    (* ram_style = "block" *) logic [31:0] cache [16383:0];
+    (* ram_style = "block" *) logic [127:0] cache [16383:0];
     (* ram_style = "distributed" *) logic [8:0] tag_array [16383:0];
     (* ram_style = "distributed" *) logic valid_array [16383:0];
     logic [8:0] tag;
@@ -139,14 +148,12 @@ module dmem_ram(
     logic [1:0] offset;
     assign {tag, index, offset} = daddr[24:0];
 
-    logic cache_nstall; // 書き込みによるストール
     logic arrive; // missしてたデータが届いたか
-    logic wr_done;
     logic [31:0] data_arrived; // 届いたデータ
     
     integer i;
     initial begin 
-        for (i=0; i<16383; i=i+1) begin
+        for (i=0; i<16384; i=i+1) begin
             cache[i] = 0;
             tag_array[i] = 0;
             valid_array[i] = 0;
@@ -157,35 +164,73 @@ module dmem_ram(
     end
 
     // dram u1(dec_daddr, arrive, data_arrived);
-    assign cache_nstall = tag_array[index] == tag && valid_array[index];
+    logic hit;
+    assign hit = tag_array[index] == tag && valid_array[index];
+    assign cache_nstall = ~(dec_mre || dec_mwe) || hit;
 
     logic [31:0] cache_data;
-    always_ff @( posedge clk ) begin 
-        cache_data <= cache[index]; // always read data in index
 
-        if(dec_mwe) begin
-            if (cache_nstall) begin
-                cache[index] <= op2;
-            end else begin
-                // write to memory
-                if(wr_done) begin
-                    cache[index] <= op2;
-                    tag_array[index] <= tag;
-                    valid_array[index] <= 1;
-                end
+    logic [1:0] wr_state;  //00 waiting writing operation 01 starting write 10 waiting wr_ready 11 waiting write complete
+                            // state で書きなおす
+
+    logic [1:0] rd_state; // 00 waiting 01 starting read 10 waiting rd_aready 11 waiting rd_valid
+    always_ff @( posedge clk ) begin  
+        if(rst) begin
+            wr_state <= 2'b00;
+            rd_state <= 2'b00;
+            cache_data <= 0;
+        end else begin
+            cache_data <= cache[index][32*offset+:32]; // always read data in index
+            wr_data <= cache[index];
+            wr_addr <= {tag_array[index],index,4'b0000}; //16bytes on a cache line
+            rd_addr <= {daddr[24:0],2'b00};
+
+            // 書き込み　読み込みは並行して行われる感じ
+            if(wr_state == 2'b01)begin
+               wr_valid <= 1;
+               wr_state <= 2'b10;
+             end 
+            if(wr_state == 2'b10 && wr_valid && wr_ready) begin
+                wr_valid <= 0;
+                wr_state <= 2'b11;
+            end 
+            if(wr_state == 2'b11 && wr_ready) begin
+                wr_state <= 2'b00;
+                // writing complete
             end
-        end
+           
+            if(rd_state == 2'b01)begin
+                rd_state <= 2'b10;
+                rd_avalid <= 1;
+            end  
+            if(rd_state == 2'b10 && rd_avalid && rd_aready) begin
+                rd_avalid <= 0;
+                rd_state <= 2'b11;
+                rd_dready <= 1;
+            end 
+            if(rd_state == 2'b11 && rd_dready && rd_valid) begin
+                rd_dready <= 0;
+                cache[index] <= rd_data;
+                tag_array[index] <= tag;
+                valid_array[index] <= 1;
+                rd_state <= 2'b00;
+                //read complete
+            end
 
-        if(dec_mre)begin
-            if(cache_nstall) begin
-                // nothing to done
-            end else begin
-                //read from memory
-                if(arrive) begin
-                    cache[index] <= data_arrived;
-                    tag_array[index] <= tag;
-                    valid_array[index] <= 1;
-                end
+            if(dec_mwe || dec_mre) begin
+                if (hit) begin
+                    if(dec_mwe)cache[index][32*offset+:32] <= op2;
+                    //nothing to do when mre
+                    //上の方で読んでる
+                end else begin
+                    //read from ddr and
+                    //暫定ライトスルー
+                    //ライトバックぐらいにはしたいね
+                    if(wr_state == 2'b00 && rd_state == 2'b00) begin
+                        wr_state <= 2'b01;
+                        rd_state <= 2'b01;
+                    end
+               end
             end
         end
     end

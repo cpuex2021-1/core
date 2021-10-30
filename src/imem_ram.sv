@@ -13,8 +13,8 @@ module imem_ram(
     (*ram_style = "distributed"*) logic [31:0] mem [4095:0];
     int i=0;
     initial begin
-        //$readmemh("inst.mem", mem,0, 1023);
-        for(i=0; i<4077; i=i+1)mem[i] = 0;
+        for(i=1024; i<4077; i=i+1)mem[i] = 0;
+        $readmemh("inst.mem", mem,0, 1023);
         $readmemh("loader.mem", mem, 4077, 4095);
     end
     assign inst = rst ? 0 : mem[pc[13:2]];
