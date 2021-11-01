@@ -6,14 +6,13 @@ module ALU(
         input  logic [31:0] op1, op2,
         input  logic [6:0]  aluctl,
         input  logic [6:0] dec_branch,  // {do_branch, geu, ltu, ge, lt ,ne, eq}
-        input  logic [26:0] dec_pc,
         input  logic [31:0] dec_imm,
+        input  logic [26:0] dec_pc,
         output logic [31:0] wb_res,
         output logic [31:0] alu_fwd,
         output logic [26:0] npc,
         output logic npc_enn,
-        output logic flush,
-        output logic [29:0] daddr
+        output logic flush
     );
     assign alu_fwd = n_res;
     always_ff @( posedge clk ) begin 
@@ -53,7 +52,7 @@ module ALU(
     assign mulh  = 32'b0;
     assign mulhsu= 32'b0;
     assign mulhu = 32'b0;
-    // not yes implemented
+    // not yet implemented
     assign div    = 32'b0;
     assign divu   = 32'b0;
     assign rem    = 32'b0;
@@ -167,8 +166,6 @@ module ALU(
     logic eq, lt,ltu;
     logic branch;
     logic [26:0] baddr;
-    logic [31:0] daddr_;
-    assign daddr_ = op1 + dec_imm;
 
     always_comb begin 
         eq = op1 == op2;
@@ -184,7 +181,6 @@ module ALU(
         flush = npc_enn;
         baddr = dec_pc + {dec_imm[24:0],2'b00};
         npc = baddr;
-        daddr = daddr_[29:0];
     end
 
 endmodule

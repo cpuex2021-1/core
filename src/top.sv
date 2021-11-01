@@ -50,8 +50,6 @@ module top(
     wire [31:0] inst;
     wire [6:0] dec_rd;  // {write enable(1), to freg(1), regiter number(5)}
     wire [31:0] dec_op1, dec_op2;
-    logic [6:0] dec_rs1,dec_rs2; // {valid, from freg , register number}
-    logic [31:0] dec_imm;
     wire [6:0] aluctl;
     wire [26:0] pc;
     wire [26:0] npc;
@@ -60,6 +58,7 @@ module top(
 
     logic [6:0] dec_branch;
     logic [26:0] dec_pc;
+    logic dec_imm;
 
     logic dec_mre;
     logic dec_mwe;
@@ -69,6 +68,7 @@ module top(
     logic n_stall;
     logic uart_nstall;
     logic cache_nstall;
+    logic dec_nstall;
 
     logic [31:0] alu_fwd;
 
@@ -80,20 +80,20 @@ module top(
     assign n_stall = uart_nstall && cache_nstall;
 
     //
-    PC       program_counter(.clk, .rst, .npc, .n_stall, .pc, .npc_enn );
+    PC       program_counter(.clk, .rst, .npc, .n_stall(n_stall&&dec_nstall), .pc, .npc_enn );
     imem_ram imem(.clk, .rst, .pc, .inst, .op2, .daddr, .dec_mwe);
     //IF <-> Dec & RF 
     decode decode(.clk, .rst, .inst,.pc, 
-                 .dec_op1, .dec_op2,.dec_rs1, .dec_rs2, .dec_imm,  .aluctl, .dec_rd,  .dec_mre, .dec_mwe, // to exec
+                 .dec_op1, .dec_op2, .aluctl, .dec_rd,  .dec_mre, .dec_mwe, // to exec
                  .alu_fwd,                                  // forwarding
-                 .dec_branch, .dec_pc,
+                 .dec_branch, .dec_pc, .daddr,
                  .wb_res, .wb_memdata, .wb_mre, .wb_rd,
-                  .n_stall, .flush);
+                  .n_stall, .flush, .dec_nstall);
     // decode output ↓
     // Dec & RF <-> ALU + MA
 
-    exe_fwd fwd(.dec_op1, .dec_op2, .wb_memdata, .dec_rs1, .dec_rs2, .wb_rd, .wb_mre, .op1, .op2);
-    ALU alu(.clk, .rst, .n_stall ,.op1, .op2, .aluctl, .dec_branch, .dec_pc, .dec_imm, .wb_res, .daddr, .alu_fwd, .npc, .npc_enn,.flush);
+    //exe_fwd fwd(.dec_op1, .dec_op2, .wb_memdata,  .wb_rd, .wb_mre, .op1, .op2);
+    ALU alu(.clk, .rst, .n_stall ,.op1(dec_op1), .op2(dec_op2), .aluctl, .dec_branch, .dec_pc, .dec_imm, .wb_res,  .alu_fwd, .npc, .npc_enn,.flush);
     dmem_ram dmem(.clk, .rst, .n_stall ,.daddr, .dec_mre, .dec_mwe , .op2, .wb_memdata, .rxd, .txd, .rx_valid, .tx_ready, .*); //memdata
     writeback wb(.clk, .rst,.n_stall, .dec_rd,  .dec_mre,    .wb_rd, .wb_mre);
     // exec output ↓
