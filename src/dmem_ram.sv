@@ -140,12 +140,11 @@ module dmem_ram(
 
 
     `ifndef SET_ASSOC
-    (* ram_style = "block" *) logic [31:0] cache00 [1023:0];
-    (* ram_style = "block" *) logic [31:0] cache01 [1023:0];
-    (* ram_style = "block" *) logic [31:0] cache02 [1023:0];
-    (* ram_style = "block" *) logic [31:0] cache03 [1023:0];
-    logic [31:0] c00,c01,c02,c03;
-    assign wr_data = {c00, c01, c02, c03};
+    //(* ram_style = "block" *) logic [31:0] cache00 [1023:0];
+    //(* ram_style = "block" *) logic [31:0] cache01 [1023:0];
+    //(* ram_style = "block" *) logic [31:0] cache02 [1023:0];
+    //(* ram_style = "block" *) logic [31:0] cache03 [1023:0];
+
     (* ram_style = "distributed" *) logic [12:0] tag_array [1023:0];
     (* ram_style = "distributed" *) logic valid_array [1023:0];
     logic [12:0] tag;
@@ -158,15 +157,10 @@ module dmem_ram(
     
     integer i;
     initial begin 
-        for (i=0; i<1023; i=i+1) begin
-            cache00[i] = 0;
-            cache01[i] = 0;
-            cache02[i] = 0;
-            cache03[i] = 0;
+        for (i=0; i<1024; i=i+1) begin
             tag_array[i] = 0;
             valid_array[i] = 0;
         end
-        cache_nstall = 0;
         arrive = 0;
         data_arrived = 0;
     end
@@ -180,44 +174,46 @@ module dmem_ram(
 
     logic [1:0] wr_state;  //00 waiting writing operation 01 starting write 10 waiting wr_ready 11 waiting write complete
                             // state で書きなおす
-
     logic [1:0] rd_state; // 00 waiting 01 starting read 10 waiting rd_aready 11 waiting rd_valid
-    bram bram1(.clk, .rst, .addr(index), .wen(wen[0]), wr_data(bram_wr_data[0]));
+
+    logic [31:0] c00,c01,c02,c03;
+    assign wr_data = {c03, c02, c01, c00};
+    bram bram0(.clk, .rst, .addr(index), .wen(wen[0]), .wr_data(bram_wr_data[0]), .rd_data(c00));
+    bram bram1(.clk, .rst, .addr(index), .wen(wen[1]), .wr_data(bram_wr_data[1]), .rd_data(c01));
+    bram bram2(.clk, .rst, .addr(index), .wen(wen[2]), .wr_data(bram_wr_data[2]), .rd_data(c02));
+    bram bram3(.clk, .rst, .addr(index), .wen(wen[3]), .wr_data(bram_wr_data[3]), .rd_data(c03));
     logic wen[4];
     logic [31:0] bram_wr_data [4];
     always_comb begin 
-        wr_data = {c00, c01, c02, c03};
-        case (offset)
-            2'b00: cache_data = cache00[index];
-            2'b01: cache_data = cache01[index];
-            2'b10: cache_data = cache02[index];
-            2'b11: cache_data = cache03[index];
-        endcase
         wen[0] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b00);
         wen[1] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b01);
         wen[2] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b10);
         wen[3] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b11);
-        bram_wr_data[0] = (rd_state == 2'b11 && rd_dready && rd_valid) ? rd_data[0+:32] : op2;
-        bram_wr_data[1] = (rd_state == 2'b11 && rd_dready && rd_valid) ? rd_data[32+:32] : op2;
-        bram_wr_data[2] = (rd_state == 2'b11 && rd_dready && rd_valid) ? rd_data[64+:32] : op2;
-        bram_wr_data[3] = (rd_state == 2'b11 && rd_dready && rd_valid) ? rd_data[96+:32] : op2;
+        bram_wr_data[0] = dec_mwe && offset == 2'b00 ?  op2 : rd_data[0+:32] ;
+        bram_wr_data[1] = dec_mwe && offset == 2'b01 ?  op2 : rd_data[32+:32] ;
+        bram_wr_data[2] = dec_mwe && offset == 2'b10 ?  op2 : rd_data[64+:32] ;
+        bram_wr_data[3] = dec_mwe && offset == 2'b11 ?  op2 : rd_data[96+:32] ;
     end
     always_ff @( posedge clk ) begin  
         if(rst) begin
             wr_state <= 2'b00;
             rd_state <= 2'b00;
-            c00 <= 0;
-            c01 <= 0;
-            c02 <= 0;
-            c03 <= 0;
+            wr_addr <= 0;
+            rd_addr <= 0;
+            wr_valid <= 0;
+            rd_avalid <= 0;
+            rd_dready <= 0;
+            cache_data <= 0;
         end else begin
-            c00 <= cache00[index];
-            c01 <= cache01[index];
-            c02 <= cache02[index];
-            c03 <= cache03[index];
+            case (offset)
+                2'b00: cache_data <= c00;
+                2'b01: cache_data <= c01;
+                2'b10: cache_data <= c02;
+                2'b11: cache_data <= c03;
+            endcase
             //wr_data <= {cache00[index],cache01[index],cache02[index],cache03[index]};
             wr_addr <= {tag_array[index],index,4'b0000}; //16bytes on a cache line
-            rd_addr <= {daddr[24:0],2'b00};
+            rd_addr <= {tag, index,4'b0000};
 
             // 書き込み　読み込みは並行して行われる感じ
             if(wr_state == 2'b01)begin
@@ -244,23 +240,11 @@ module dmem_ram(
             end 
             if(rd_state == 2'b11 && rd_dready && rd_valid) begin
                 rd_dready <= 0;
-                cache00[index] <= rd_data[0 +:32];
-                cache01[index] <= rd_data[32+:32];
-                cache02[index] <= rd_data[64+:32];
-                cache03[index] <= rd_data[96+:32];
                 tag_array[index] <= tag;
                 valid_array[index] <= 1;
                 rd_state <= 2'b00;
                 //read complete
             end else 
-            if(dec_mwe&&hit) begin
-                case (offset)
-                    2'b00 : cache00[index] <= op2;
-                    2'b01 : cache01[index] <= op2;
-                    2'b10 : cache02[index] <= op2;
-                    2'b11 : cache03[index] <= op2;
-                endcase
-            end
  
             if((dec_mwe || dec_mre) && ~hit) begin
                 //read from ddr and

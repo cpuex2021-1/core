@@ -1,5 +1,6 @@
 `timescale 1ns / 1ps
-
+import axi_vip_pkg::*;
+import design_1_axi_vip_0_0_pkg::*;
 module simtop();
     logic clk, rst;
     wire [15:0] LED;
@@ -18,5 +19,10 @@ module simtop();
 
     end
 
-    top top(.clk(clk), .rst(rst), .LED(LED));
+    design_1_wrapper design_1_wrapper(.clk(clk), .rst(rst), .LED(LED));
+    design_1_axi_vip_0_0_slv_mem_t agent;
+    initial begin
+        agent = new("AXI Slave Agent", dut.design_1_i.axi_vip_0.inst.IF);
+        agent.start_slave();
+    end
 endmodule

@@ -6,11 +6,8 @@ module ALU(
         input  logic [31:0] op1, op2,
         input  logic [6:0]  aluctl,
         input  logic [6:0] dec_branch,  // {do_branch, geu, ltu, ge, lt ,ne, eq}
-        input  logic [31:0] dec_imm,
-        input  logic [26:0] dec_pc,
         output logic [31:0] wb_res,
         output logic [31:0] alu_fwd,
-        output logic [26:0] npc,
         output logic npc_enn,
         output logic flush
     );
@@ -179,8 +176,6 @@ module ALU(
         cond[5] = ~ltu;
         npc_enn = dec_branch[6] && |(cond & dec_branch[5:0]);
         flush = npc_enn;
-        baddr = dec_pc + {dec_imm[24:0],2'b00};
-        npc = baddr;
     end
 
 endmodule

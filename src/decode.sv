@@ -12,7 +12,7 @@ module decode(
         output logic [6:0] dec_rd,
         output logic dec_mre, dec_mwe,
         output logic [6:0] dec_branch,
-        output logic [26:0] dec_pc,
+        output logic [26:0] npc,
         output logic [29:0] daddr,
 
         //forwarding
@@ -103,34 +103,30 @@ module decode(
     
 
     // for hazard 
-    logic [5:0] dec_rs1,dec_rs2;
-    assign dec_nstall = ~(aluctl[4:0] == 5'b10100 && dec_rs1 == rs1 && lw_nstall == 1'b0); // lw rd -> add .. rd
-    logic  lw_nstall;
+    assign dec_nstall = ~(aluctl[5:1] == 5'b10100 && (dec_rd[5:0] == rs1 || dec_rd[5:0] == rs2)); // lw rd -> add .. rd
+    logic  lw_nstall; //
 
     logic [31:0]daddr_;
-    assign daddr_ = rs1data + immIL;
+    assign daddr_ = op == 3'b101 ? rs1data + immIL : rs1data + immSB;
+
     always_ff @( posedge clk ) begin 
         if(rst || flush)begin
             dec_op1 <= 0;
             dec_op2 <= 0;
-            dec_rs1 <= 0;
-            dec_rs2 <= 0;
             aluctl <= 0;
             dec_rd <= 0;
             dec_mwe <= 0;
             dec_mre <= 0;
             dec_alu <= 1;
             dec_branch <= 0;
-            dec_pc <= 0;
             daddr <= 0;
-            lw_nstall <= 0;
+            npc<= 0;
+            lw_nstall <= 1;
         end else begin
-            lw_nstall <= dec_nstall ? 0 : n_stall;
-            if(n_stall && dec_nstall) begin
+            lw_nstall <= dec_nstall ? 0 :  n_stall;
+            if(n_stall && (dec_nstall || lw_nstall )) begin
                 dec_op1 <= n_op1;
                 dec_op2 <= n_op2;
-                dec_rs1 <= rs1;
-                dec_rs2 <= rs2;
                 //dec_imm <= op == 3'b110 ? immSB : immIL;
                 aluctl <= {inst[11], op, funct};
                 dec_rd  <= {op[2:1] != 2'b11, tofreg, inst[26:22]}; //rd valid when  beq nor jump
@@ -146,7 +142,7 @@ module decode(
                 dec_branch[4] <= funct==3'b100;//ltu
                 dec_branch[5] <= funct==3'b101;//geu
                 dec_branch[6] <= op==3'b110 && ~&funct[2:1];
-                dec_pc <= pc;
+                npc <= pc + {immSB[24:0], 2'b00};
                 daddr <= daddr_[29:0];
             end
         end

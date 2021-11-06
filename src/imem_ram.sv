@@ -4,7 +4,7 @@ module imem_ram(
         input  logic clk,rst,
         input  logic [26:0] pc,
         input  logic [29:0] daddr,
-        input  logic [31:0] op2,
+        input  logic [31:0] dec_op2,
         input  logic dec_mwe,
         output logic [31:0] inst
 
@@ -22,7 +22,7 @@ module imem_ram(
         if(rst) begin
         end else begin
             if (&daddr[29:25] & dec_mwe) begin
-                mem[daddr[11:0]] <= op2;
+                mem[daddr[11:0]] <= dec_op2;
             end
         end
     end
