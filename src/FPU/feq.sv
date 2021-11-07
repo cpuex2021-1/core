@@ -4,7 +4,7 @@
 
 module feq(
         input logic [31:0] x,y,
-        output logic z
+        output logic [31:0] z
     );
     /*
     logic xs, ys;
@@ -24,6 +24,6 @@ module feq(
     assign bothzero = xzero & yzero;
     logic allsame = x == y;
     assign z = bothzero | allsame;*/
-    assign z = x==y;
+    assign z = {31'b0, x==y};
 endmodule
 

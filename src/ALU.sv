@@ -58,20 +58,20 @@ module ALU(
     //floatint point arithmetic
     //ganbaru
     logic [31:0] fadd, fsub, fmul, fdiv, fsqrt, fneg, fmin, fmax;
-    assign fadd = 32'b0;
-    assign fsub = 32'b0;
-    assign fmul = 32'b0;
-    assign fdiv = 32'b0;
-    assign fsqrt= 32'b0;
-    assign fneg = 32'b0;
-    assign fmin = 32'b0;
-    assign fmax = 32'b0;
+    fadd fad(.x1(op1), .x2(op2), .y(fadd));
+    fsub fsu(.x(op1), .y(op2), .z(fsub));
+    fmul fmu(.a(op1), .b(op2), .c(fmul));
+    fdiv fdi(.x(op1), .y(op2), .z(fdiv), .clk, .rst);
+    fsqr fsq(.a(op1), .b(op2), .c(fsqrt), .clk, .rst);
+    fneg fne(.x(op1), .z(fneg));
+    fmin fmi(.x(op1), .y(op2), .z(fmin));
+    fmax fma(.x(op1), .y(op2), .z(fmax));
     
     //floating point cond, mv
     logic [31:0] feq, flt, fle, fmvxw, fmvwx;
-    assign feq  = 32'b0;
-    assign flt  = 32'b0;
-    assign fle  = 32'b0;
+    feq feqq(.x(op1), .y(op2), .z(feq));
+    flt fltt(.x(op1), .y(op2), .z(flt));
+    fle flee(.x(op1), .y(op2), .z(fle));
     assign fmvwx= op1;
     assign fmvxw= op1;
     

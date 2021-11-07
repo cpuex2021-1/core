@@ -15,8 +15,8 @@ module register(
     integer i;
     initial for(i=0; i<64; i=i+1) register[i] = 0;
 
-    assign rs1data_reg = rs1[4:0] == 5'b00000 ? 32'b0 : register[rs1[5:0]];
-    assign rs2data_reg = rs2[4:0] == 5'b00000 ? 32'b0 : register[rs2[5:0]];
+    assign rs1data_reg = rs1[5:0] == 6'b00000 ? 32'b0 : register[rs1[5:0]];
+    assign rs2data_reg = rs2[5:0] == 6'b00000 ? 32'b0 : register[rs2[5:0]];
     always_ff @(posedge clk) begin
         if(we && wb_rd[6] == 1'b1) begin // wb_rd[6:5] means rd is valid and to int register
             register[wb_rd[5:0]] <= rddata;

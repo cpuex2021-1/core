@@ -39,7 +39,7 @@ module decode(
     assign fromfreg = op == 3'b010 || {funct[2], op} == 4'b0011; //floatiing point and fmv.w.x
 
     logic tofreg ;
-    assign tofreg = op==3'b010 || {funct[2], op} == 4'b1011; //may be illegal;
+    assign tofreg = op==3'b010 || {funct, op} == 6'b100011; //fadd..fmax ,  fmv.w.x
 
     logic [5:0] rs1, rs2;
     assign rs1 = {fromfreg,inst[31:27]}; //rs1 is always valid
@@ -59,10 +59,10 @@ module decode(
     assign rddata = wb_mre? wb_memdata : wb_res;
     register register (.clk, .rst, .rs1(rs1[5:0]), .rs2(rs2[5:0]), .rs1data_reg, .rs2data_reg, .wb_rd, .rddata, .we( n_stall));   
     //fregister fregister(.clk, .rst, .rs1(rs1[5:0]), .rs2(rs2[5:0]), .frs1data_reg, .frs2data_reg, .wb_rd, .rddata, .we( n_stall));
-    assign rs1data = (rs1 == dec_rd[5:0] && rs1[4:0] != 0 && dec_alu) ? alu_fwd : 
-                    (rs1 == wb_rd[5:0] && rs1[4:0] !=0) ? rddata : rs1data_reg; //条件違う気がする
-    assign rs2data = (rs2 == dec_rd[5:0] && rs2[4:0] != 0 && dec_alu) ? alu_fwd :
-                    (rs2 == wb_rd[5:0] && rs2[4:0] != 0 )? rddata : rs2data_reg; 
+    assign rs1data = (rs1 == dec_rd[5:0] && rs1[5:0] != 0 && dec_alu) ? alu_fwd : 
+                    (rs1 == wb_rd[5:0] && rs1[5:0] !=0) ? rddata : rs1data_reg; //条件違う気がする
+    assign rs2data = (rs2 == dec_rd[5:0] && rs2[5:0] != 0 && dec_alu) ? alu_fwd :
+                    (rs2 == wb_rd[5:0] && rs2[5:0] != 0 )? rddata : rs2data_reg; 
     // for floting point!
     logic [31:0] n_op1, n_op2;
     always_comb begin
@@ -129,7 +129,7 @@ module decode(
                 dec_op2 <= n_op2;
                 //dec_imm <= op == 3'b110 ? immSB : immIL;
                 aluctl <= {inst[11], op, funct};
-                dec_rd  <= {op[2:1] != 2'b11, tofreg, inst[26:22]}; //rd valid when  beq nor jump
+                dec_rd  <= {op[2:1] != 2'b11 || {funct,op} == 6'b010111, tofreg, inst[26:22]}; //rd valid not when branch,sw,jump 
                 dec_mwe <= op==3'b110 && funct[2:1] == 2'b11;
                 dec_mre <= op==3'b101 && funct[2:1] == 2'b00;
                 dec_alu <= ~op[2] || // R style
