@@ -53,6 +53,7 @@ module top(
     wire [6:0] aluctl;
     wire [26:0] pc;
     wire [26:0] npc;
+    logic [26:0] if_pc;
     (*mark_debug = "true"*)logic npc_enn;
     logic flush;
 
@@ -80,9 +81,9 @@ module top(
 
     //
     PC       program_counter(.clk, .rst, .npc, .n_stall(n_stall&&dec_nstall), .pc, .npc_enn );
-    imem_ram imem(.clk, .rst, .pc, .inst, .dec_op2, .daddr, .dec_mwe);
+    imem_ram imem(.clk, .rst, .pc, .inst,.if_pc, .dec_op2, .daddr, .dec_mwe, .flush);
     //IF <-> Dec & RF 
-    decode decode(.clk, .rst, .inst,.pc, 
+    decode decode(.clk, .rst, .inst,.if_pc, 
                  .dec_op1, .dec_op2, .aluctl, .dec_rd,  .dec_mre, .dec_mwe, // to exec
                  .alu_fwd,                                  // forwarding
                  .dec_branch, .npc, .daddr,

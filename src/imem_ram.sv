@@ -6,21 +6,27 @@ module imem_ram(
         input  logic [29:0] daddr,
         input  logic [31:0] dec_op2,
         input  logic dec_mwe,
-        output logic [31:0] inst
+        input  logic flush,
+        output logic [31:0] inst,
+        output logic [26:0] if_pc
 
     );
 
-    (*ram_style = "distributed"*) logic [31:0] mem [4095:0];
+    (*ram_style = "block"*) logic [31:0] mem [4095:0];
     int i=0;
     initial begin
-        for(i=1024; i<4077; i=i+1)mem[i] = 0;
+        for(i=0; i<4077; i=i+1)mem[i] = 0;
         $readmemh("inst.mem", mem,0, 1023);
         $readmemh("loader.mem", mem, 4077, 4095);
     end
-    assign inst = rst ? 0 : mem[pc[13:2]];
+    //assign inst = rst ? 0 : mem[pc[13:2]];
     always_ff @( posedge clk ) begin 
-        if(rst) begin
+        if(rst | flush) begin
+            inst <= 0;
+            if_pc <= 0;
         end else begin
+            inst <= mem[pc[13:2]];
+            if_pc <= pc;
             if (&daddr[29:25] & dec_mwe) begin
                 mem[daddr[11:0]] <= dec_op2;
             end

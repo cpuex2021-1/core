@@ -5,7 +5,7 @@
 module decode(
         input  logic clk, rst,
         input  logic [31:0] inst,
-        input  logic [26:0] pc,
+        input  logic [26:0] if_pc,
 
         output logic [31:0] dec_op1, dec_op2,
         output logic [6:0] aluctl,
@@ -142,7 +142,7 @@ module decode(
                 dec_branch[4] <= funct==3'b100;//ltu
                 dec_branch[5] <= funct==3'b101;//geu
                 dec_branch[6] <= op==3'b110 && ~&funct[2:1];
-                npc <= pc + {immSB[24:0], 2'b00};
+                npc <= if_pc + {immSB[24:0], 2'b00};
                 daddr <= daddr_[29:0];
             end
         end

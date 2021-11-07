@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 import axi_vip_pkg::*;
-import design_1_axi_vip_0_0_pkg::*;
+import design_2_axi_vip_0_0_pkg::*;
 module simtop();
     logic clk, rst;
     logic rxd, txd;
@@ -39,10 +39,10 @@ module simtop();
                 
     end
 
-    design_1_wrapper dut(.sys_clock (clk), .reset_0 (rst), .rxd(rxd), .txd(txd), .LED);
-    design_1_axi_vip_0_0_slv_mem_t agent;
+    design_2_wrapper dut(.sys_clock (clk), .reset (rst), .rxd(rxd), .txd(txd), .LED);
+    design_2_axi_vip_0_0_slv_mem_t agent;
     initial begin
-        agent = new("AXI Slave Agent", dut.design_1_i.axi_vip_0.inst.IF);
+        agent = new("AXI Slave Agent", dut.design_2_i.axi_vip_0.inst.IF);
         agent.start_slave();
     end
 endmodule
