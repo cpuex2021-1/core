@@ -20,12 +20,13 @@ float fmul(float a, float b){
     s  = s1 ^ s2;
 
 
-    int e1, e2, eadd, en,ep, e;
+    int e1, e2, eadd, en,ep, e, zero;
     e1 = (aa.i>>23) & 0xff;
     e2 = (bb.i>>23) & 0xff;
     eadd = e1 + e2;
     en = eadd - 127;
     ep = eadd - 126;
+    zero = e1==0 || e2==0;
 
     long m1,m2;
     m1 = (aa.i & 0x7fffff) + 0x800000;
@@ -53,7 +54,11 @@ float fmul(float a, float b){
     }
     intfloat ans;
     ans.i = (s<<31) + (e<<23) + m;
-    return ans.f;
+    if(zero) {
+        return 0.0;
+    }else{
+        return ans.f;
+    }
 
 }
 
@@ -66,6 +71,10 @@ int main(){
     errb = 0;
     errans = 0;
     errest = 0;
+    for(int i=0; i<100; i++){
+        est.i = rand();
+        printf("%f\n", fmul(0, est.f));
+    }
     for(int i=0; i<10000000; i++){
             int ea,eb;
             ea = rand() %255;

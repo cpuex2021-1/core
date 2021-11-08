@@ -8,6 +8,7 @@ module ALU(
         input  logic [6:0] dec_branch,  // {do_branch, geu, ltu, ge, lt ,ne, eq}
         output logic [31:0] wb_res,
         output logic [31:0] alu_fwd,
+        output logic alu_nstall,
         output logic npc_enn,
         output logic flush
     );
@@ -57,21 +58,25 @@ module ALU(
     
     //floatint point arithmetic
     //ganbaru
+    // latency 0: fneg, feq
+    // latency 1: flt, fle, fmin, fmax
+    // latency 2: fadd,fsub,fmul, fsqr
+    // latency 3: fdiv
     logic [31:0] fadd, fsub, fmul, fdiv, fsqrt, fneg, fmin, fmax;
-    fadd fad(.x1(op1), .x2(op2), .y(fadd));
-    fsub fsu(.x(op1), .y(op2), .z(fsub));
-    fmul fmu(.a(op1), .b(op2), .c(fmul));
+    fadd_cy fad(.x1(op1), .x2(op2), .y(fadd), .clk, .rst);
+    fsub fsu(.x(op1), .y(op2), .z(fsub), .clk, .rst);
+    fmul fmu(.a(op1), .b(op2), .c(fmul), .clk, .rst);
     fdiv fdi(.x(op1), .y(op2), .z(fdiv), .clk, .rst);
     fsqr fsq(.a(op1), .b(op2), .c(fsqrt), .clk, .rst);
     fneg fne(.x(op1), .z(fneg));
-    fmin fmi(.x(op1), .y(op2), .z(fmin));
-    fmax fma(.x(op1), .y(op2), .z(fmax));
+    fmin fmi(.x(op1), .y(op2), .z(fmin), .clk, .rst);
+    fmax fma(.x(op1), .y(op2), .z(fmax), .clk, .rst);
     
     //floating point cond, mv
     logic [31:0] feq, flt, fle, fmvxw, fmvwx;
     feq feqq(.x(op1), .y(op2), .z(feq));
-    flt fltt(.x(op1), .y(op2), .z(flt));
-    fle flee(.x(op1), .y(op2), .z(fle));
+    flt fltt(.x(op1), .y(op2), .z(flt), .clk, .rst);
+    fle flee(.x(op1), .y(op2), .z(fle), .clk, .rst);
     assign fmvwx= op1;
     assign fmvxw= op1;
     
@@ -102,6 +107,10 @@ module ALU(
             6'b001110 :  n_res = rem;
             6'b001111 :  n_res = remu;
 
+    // latency 0: fneg, feq
+    // latency 1: flt, fle, fmin, fmax
+    // latency 2: fadd,fsub,fmul, fsqr
+    // latency 3: fdiv
             6'b010000 :  n_res = fadd;
             6'b010001 :  n_res = fsub;
             6'b010010 :  n_res = fmul;

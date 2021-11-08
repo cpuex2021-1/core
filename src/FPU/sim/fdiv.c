@@ -42,14 +42,15 @@ int fdiv(int x, int y){
     int ys = y>>31;
     int xe = (x>>23) & 0xff;
     int ye = (y>>23) & 0xff;
+    int zero = xe == 0;
     long xm = (1 << 23) | (x & 0x7fffff);
     long key = (y>>13) & 0x3ff;
     long diff = y & 0x1fff;
     long init = (init_grad[key] & 0xfffffe000);
     long grad = init_grad[key] & 0x1fff;
     long ym_ = init - 2 * diff * grad;
-    //long ym =  (1<<23) | (ym>>13);
-    long ym = (1l << 23) + (finv(y) & 0x7fffff);
+    long ym =  (1<<23) | (ym_>>13);
+    //long ym = (1l << 23) + (finv(y) & 0x7fffff);
     long m_ = xm * ym;
     long m;
     int e_ = xe - ye + 126;
@@ -61,7 +62,11 @@ int fdiv(int x, int y){
     }
     int e = e_ & 0xff;
     int s = xs ^ ys;
-    return (s << 31 ) | (e<<23) | m;
+    if(zero){
+        return 0;
+    }else{
+        return (s << 31 ) | (e<<23) | m;
+    }
 }
 void initdiv(){
     FILE *fp;
@@ -75,6 +80,12 @@ int main(){
     initdiv();
     intfloat x,y;
     intfloat res,ans;
+    for(int i=0; i<100; i++){
+        x.i = rand();
+        y.i = rand();
+        res.i = fdiv(x.i, y.i);
+        printf("%f %f ans:%f res:%f\n", x.f, y.f, x.f/y.f, res.f);
+    }
     for(int i=0; i<10000000; i++){
         x.i = rand();
         y.i = rand();

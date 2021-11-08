@@ -1,6 +1,7 @@
 `timescale 1ns / 1ps
 
 module flt(
+        input  logic clk,rst,
         input  logic [31:0] x,y,
         output logic [31:0] z
     );
@@ -37,6 +38,13 @@ module flt(
 
         emeq = ~| (x[30:0] ^ y[30:0]);
 
-        z = { 31'b0, (pp & absl) | np | (nn & ~absl & ~emeq)};
+    end
+    always_ff @( posedge clk ) begin 
+        if(rst) begin
+            z <= 0;
+        end else begin
+            z <= { 31'b0, (pp & absl) | np | (nn & ~absl & ~emeq)};
+        end
+        
     end
 endmodule
