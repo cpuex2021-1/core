@@ -13,7 +13,6 @@
 // daddr [29:25] == 5'b11111 -> inst memory
 module dmem_ram(
         input  logic clk,rst,
-        input  logic n_stall,
         input  logic [29:0] daddr,
         input  logic dec_mre,
         input  logic dec_mwe,

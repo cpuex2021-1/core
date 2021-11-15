@@ -7,5 +7,5 @@ module fsub(
     );
     logic [31:0] ny;
     assign ny  = {~y[31], y[30:0]};
-    fadd_cy fad(x,ny, z, .clk, .rst);
+    fadd_cy fad(.x1(x),.x2(ny), .y(z), .clk, .rst);
 endmodule

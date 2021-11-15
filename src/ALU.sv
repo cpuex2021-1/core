@@ -58,10 +58,47 @@ module ALU(
     
     //floatint point arithmetic
     //ganbaru
+    logic [3:0] cnt;
+    //cnt == 1111 count start
+    //cnt == 0111 end
+    // 
+    always_ff @( posedge clk ) begin 
+        if(rst) begin
+            cnt <= 4'b1111;
+        end else begin
+            if(l1) begin
+                if(cnt == 4'b1111) begin
+                    cnt <= 4'b0111;
+                end else begin
+                    cnt <= {cnt[2:0], 1'b1};
+                end
+            end else if(l2) begin
+                if(cnt == 4'b1111) begin
+                    cnt <= 4'b0011;
+                end else begin
+                    cnt <= {cnt[2:0], 1'b1};
+                end
+            end else if (l3)begin
+                if(cnt == 4'b1111) begin
+                    cnt <= 4'b0001;
+                end else begin
+                    cnt <= {cnt[2:0], 1'b1};
+                end
+            end
+        end
+    end
+    assign alu_nstall = ~((l1 || l2 || l3) && cnt!=4'b0111);
     // latency 0: fneg, feq
     // latency 1: flt, fle, fmin, fmax
     // latency 2: fadd,fsub,fmul, fsqr
     // latency 3: fdiv
+    logic l0,l1,l2,l3;
+    logic [5:0] functop;
+    assign functop = aluctl[5:0];
+    assign l0 = functop == 6'b010000 || functop == 6'b010001 || functop == 6'b010010 ;
+    assign l1 = functop == 6'b011001 || functop == 6'b011010 || functop == 6'b010110 || functop == 6'b010111;
+    assign l2 = functop == 6'b010000 || functop == 6'b010001 || functop == 6'b010010 || functop == 6'b010100;
+    assign l3 = functop == 6'b010011 ;
     logic [31:0] fadd, fsub, fmul, fdiv, fsqrt, fneg, fmin, fmax;
     fadd_cy fad(.x1(op1), .x2(op2), .y(fadd), .clk, .rst);
     fsub fsu(.x(op1), .y(op2), .z(fsub), .clk, .rst);
