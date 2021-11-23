@@ -95,7 +95,7 @@ module ALU(
     logic l0,l1,l2,l3;
     logic [5:0] functop;
     assign functop = aluctl[5:0];
-    assign l0 = functop == 6'b010000 || functop == 6'b010001 || functop == 6'b010010 ;
+    assign l0 = functop == 6'b010000 || functop == 6'b010001 || functop == 6'b010010 || functop ==6'b011111 ;
     assign l1 = functop == 6'b011001 || functop == 6'b011010 || functop == 6'b010110 || functop == 6'b010111;
     assign l2 = functop == 6'b010000 || functop == 6'b010001 || functop == 6'b010010 || functop == 6'b010100;
     assign l3 = functop == 6'b010011 ;
@@ -110,12 +110,16 @@ module ALU(
     fmax fma(.x(op1), .y(op2), .z(fmax), .clk, .rst);
     
     //floating point cond, mv
-    logic [31:0] feq, flt, fle, fmvxw, fmvwx;
+    logic [31:0] feq, flt, fle, fmvxw, fmvwx, fmv, itof, ftoi;
     feq feqq(.x(op1), .y(op2), .z(feq));
     flt fltt(.x(op1), .y(op2), .z(flt), .clk, .rst);
     fle flee(.x(op1), .y(op2), .z(fle), .clk, .rst);
     assign fmvwx= op1;
     assign fmvxw= op1;
+    assign fmv  = op1;
+    itof itoff(.a(op1), .c(itof));
+    ftoi ftoii(.a(op1), .c(ftoi));
+    
     
     // I/L  nearly same with R-type
     logic [31:0] lui;
@@ -162,9 +166,9 @@ module ALU(
             6'b011010 :  n_res = fle; 
             6'b011011 :  n_res = fmvwx;
             6'b011100 :  n_res = fmvxw;
-            6'b011101 :  n_res = 32'b0; // invalid 
-            6'b011110 :  n_res = 32'b0; // invalid
-            6'b011111 :  n_res = 32'b0; // invalid
+            6'b011101 :  n_res = fmv;
+            6'b011110 :  n_res = itof;
+            6'b011111 :  n_res = ftoi;
 
             //same with 000xxx
             6'b100000 :  n_res = add;

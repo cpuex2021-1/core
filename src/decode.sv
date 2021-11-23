@@ -36,10 +36,10 @@ module decode(
     //assign rs2_valid = ~op[1] || op==3'b110; //rs2 reg is read
 
     logic fromfreg ;
-    assign fromfreg = op == 3'b010 || {funct[2], op} == 4'b0011; //floatiing point and fmv.w.x
+    assign fromfreg = op == 3'b010 || {funct[2], op} == 4'b0011 || {funct[2], funct[0], op} == 5'b11011; //floatiing point and fmv.w.x
 
     logic tofreg ;
-    assign tofreg = op==3'b010 || {funct, op} == 6'b100011; //fadd..fmax ,  fmv.w.x
+    assign tofreg = op==3'b010 || ({funct[2], op} == 4'b1011 && ~&funct[1:0])  ; //fadd..fmax ,  fmv.w.x
 
     logic [5:0] rs1, rs2;
     assign rs1 = {fromfreg,inst[31:27]}; //rs1 is always valid
