@@ -12,6 +12,7 @@ module decode(
         output logic [6:0] dec_rd,
         output logic dec_mre, dec_mwe,
         output logic [6:0] dec_branch,
+        output logic dec_jump,
         output logic [26:0] npc,
         output logic [29:0] daddr,
 
@@ -75,6 +76,7 @@ module decode(
             3'b101 : op1 = rs1data;
             3'b110 : op1 = rs1data;
             3'b111 : ; */
+            3'b111 : n_op1 = {5'b00000,if_pc};
             default: n_op1 = rs1data;
         endcase
         unique case (op)
@@ -85,17 +87,25 @@ module decode(
             3'b100 : n_op2 = immIL;
             3'b101 : n_op2 = immIL;
             3'b110 : n_op2 = rs2data;   
-            3'b111 : n_op2 = immIL; // may be illegal  do-siyo 
+            3'b111 : n_op2 = 32'd4; // may be illegal  do-siyo 
         endcase
     end                           
     logic [26:0] jaddr ;
     assign jaddr = {inst[30:6], 2'b00};
+    logic [26:0] jaladdr;
+    assign jaladdr = if_pc + {immIL[24:0], 2'b00};
+    logic [26:0] jalraddr;
+    assign jalraddr = rs1data[26:0] + {immIL[24:0],2'b00};
     
     //for branch 
     // this may be critical path when multicycled  but for simplicity now calculating in decode stage
 
-    logic jmp;
-    assign jmp = op==3'b111;                       // 同上
+    logic jump;
+    assign jump = op==3'b111 && funct==3'b000;
+    logic jal;
+    assign jal = op==3'b111 && funct==3'b001;
+    logic jalr;
+    assign jalr = op==3'b111 && funct == 3'b010 ;
 
 
 
@@ -103,11 +113,14 @@ module decode(
     
 
     // for hazard 
-    assign dec_nstall = ~(aluctl[5:1] == 5'b10100 && (dec_rd[5:0] == rs1 || dec_rd[5:0] == rs2)); // lw rd -> add .. rd
+    logic lw_hazard;
+    assign lw_hazard = ~(aluctl[5:1] == 5'b10100 && (dec_rd[5:0] == rs1 || dec_rd[5:0] == rs2)); // lw rd -> add .. rd
+    
+    assign dec_nstall = lw_hazard | lw_nstall;
     logic  lw_nstall; //
 
     logic [31:0]daddr_;
-    assign daddr_ = op == 3'b101 ? rs1data + immIL : rs1data + immSB;
+    assign daddr_ = op[2] & op[0] ? rs1data + immIL : rs1data + immSB;
 
     always_ff @( posedge clk ) begin 
         if(rst || flush)begin
@@ -119,17 +132,18 @@ module decode(
             dec_mre <= 0;
             dec_alu <= 1;
             dec_branch <= 0;
+            dec_jump <= 0;
             daddr <= 0;
             npc<= 0;
             lw_nstall <= 1;
         end else begin
-            lw_nstall <= dec_nstall ? 0 :  n_stall;
-            if(n_stall && (dec_nstall || lw_nstall )) begin
+            lw_nstall <= lw_hazard ? 0 :  n_stall;
+            if(n_stall && dec_nstall) begin
                 dec_op1 <= n_op1;
                 dec_op2 <= n_op2;
                 //dec_imm <= op == 3'b110 ? immSB : immIL;
                 aluctl <= {inst[11], op, funct};
-                dec_rd  <= {op[2:1] != 2'b11 || {funct,op} == 6'b010111, tofreg, inst[26:22]}; //rd valid not when branch,sw,jump 
+                dec_rd  <= {op[2:1] != 2'b11 || jal || jalr, tofreg, inst[26:22]}; //rd valid not when branch,sw,jump 
                 dec_mwe <= op==3'b110 && funct[2:1] == 2'b11;
                 dec_mre <= op==3'b101 && funct[2:1] == 2'b00;
                 dec_alu <= ~op[2] || // R style
@@ -142,7 +156,10 @@ module decode(
                 dec_branch[4] <= funct==3'b100;//ltu
                 dec_branch[5] <= funct==3'b101;//geu
                 dec_branch[6] <= op==3'b110 && ~&funct[2:1];
-                npc <= if_pc + {immSB[24:0], 2'b00};
+                dec_jump <= jump | jalr | jal;
+                npc <= jump ? jaddr :
+                       jal ? jaladdr :
+                       jalr ? jalraddr: if_pc + {immSB[24:0], 2'b00};
                 daddr <= daddr_[29:0];
             end
         end

@@ -58,6 +58,7 @@ module top(
     logic flush;
 
     logic [6:0] dec_branch;
+    logic dec_jump;
 
 
     logic dec_mre;
@@ -82,19 +83,19 @@ module top(
 
     //
     PC       program_counter(.clk, .rst, .npc, .n_stall(n_stall&&dec_nstall ), .pc, .npc_enn );
-    imem_ram imem(.clk, .rst, .pc, .inst,.if_pc, .dec_op2, .daddr, .dec_mwe, .flush);
+    imem_ram imem(.clk, .rst, .pc, .npc, .npc_enn, .inst,.if_pc, .dec_op2, .daddr, .n_stall(n_stall && dec_nstall), .dec_mwe, .flush);
     //IF <-> Dec & RF 
     decode decode(.clk, .rst, .inst,.if_pc, 
                  .dec_op1, .dec_op2, .aluctl, .dec_rd,  .dec_mre, .dec_mwe, // to exec
                  .alu_fwd,                                  // forwarding
-                 .dec_branch, .npc, .daddr,
+                 .dec_branch, .npc, .daddr, .dec_jump,
                  .wb_res, .wb_memdata, .wb_mre, .wb_rd,
                   .n_stall, .flush, .dec_nstall);
     // decode output ↓
     // Dec & RF <-> ALU + MA
 
     //exe_fwd fwd(.dec_op1, .dec_op2, .wb_memdata,  .wb_rd, .wb_mre, .op1, .op2);
-    ALU alu(.clk, .rst, .n_stall ,.op1(dec_op1), .op2(dec_op2), .aluctl, .dec_branch,  .wb_res,  .alu_fwd, .alu_nstall, .npc_enn,.flush);
+    ALU alu(.clk, .rst, .n_stall ,.op1(dec_op1), .op2(dec_op2), .aluctl, .dec_branch, .dec_jump,  .wb_res,  .alu_fwd, .alu_nstall, .npc_enn,.flush);
     dmem_ram dmem(.clk, .rst, .daddr, .dec_mre, .dec_mwe , .op2(dec_op2), .wb_memdata, .rxd, .txd, .rx_valid, .tx_ready, .*); //memdata
     writeback wb(.clk, .rst,.n_stall, .dec_rd,  .dec_mre,    .wb_rd, .wb_mre);
     // exec output ↓

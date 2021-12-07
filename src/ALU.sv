@@ -6,6 +6,7 @@ module ALU(
         input  logic [31:0] op1, op2,
         input  logic [6:0]  aluctl,
         input  logic [6:0] dec_branch,  // {do_branch, geu, ltu, ge, lt ,ne, eq}
+        input  logic       dec_jump,
         output logic [31:0] wb_res,
         output logic [31:0] alu_fwd,
         output logic alu_nstall,
@@ -199,8 +200,8 @@ module ALU(
             6'b110111 :  n_res = op2;    //fsw
 
             6'b111000 :  n_res = 32'b0;  //jump
-            6'b111001 :  n_res = 32'b0;  //jal
-            6'b111010 :  n_res = 32'b0;  //jalr
+            6'b111001 :  n_res = add;  //jal
+            6'b111010 :  n_res = add;  //jalr
             6'b111011 :  n_res = 32'b0;  //invalid
             6'b111100 :  n_res = 32'b0;  //invalid
             6'b111101 :  n_res = 32'b0;  //invalid
@@ -224,7 +225,7 @@ module ALU(
         cond[3] = ~lt;
         cond[4] = ltu;
         cond[5] = ~ltu;
-        npc_enn = dec_branch[6] && |(cond & dec_branch[5:0]);
+        npc_enn = (dec_branch[6] && |(cond & dec_branch[5:0])) | dec_jump;
         flush = npc_enn;
     end
 

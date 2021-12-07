@@ -183,6 +183,7 @@ module dmem_ram(
     bram bram3(.clk, .rst, .addr(index), .wen(wen[3]), .wr_data(bram_wr_data[3]), .rd_data(c03));
     logic wen[4];
     logic [31:0] bram_wr_data [4];
+    logic [1:0] offset_reg;
     always_comb begin 
         wen[0] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b00);
         wen[1] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b01);
@@ -192,6 +193,12 @@ module dmem_ram(
         bram_wr_data[1] = dec_mwe && offset == 2'b01 ?  op2 : rd_data[32+:32] ;
         bram_wr_data[2] = dec_mwe && offset == 2'b10 ?  op2 : rd_data[64+:32] ;
         bram_wr_data[3] = dec_mwe && offset == 2'b11 ?  op2 : rd_data[96+:32] ;
+        case (offset_reg)
+            2'b00: cache_data = c00;
+            2'b01: cache_data = c01;
+            2'b10: cache_data = c02;
+            2'b11: cache_data = c03;
+        endcase
     end
     always_ff @( posedge clk ) begin  
         if(rst) begin
@@ -202,14 +209,9 @@ module dmem_ram(
             wr_valid <= 0;
             rd_avalid <= 0;
             rd_dready <= 0;
-            cache_data <= 0;
+            offset_reg <= 0;
         end else begin
-            case (offset)
-                2'b00: cache_data <= c00;
-                2'b01: cache_data <= c01;
-                2'b10: cache_data <= c02;
-                2'b11: cache_data <= c03;
-            endcase
+            offset_reg <= daddr[1:0];
             //wr_data <= {cache00[index],cache01[index],cache02[index],cache03[index]};
             wr_addr <= {tag_array[index],index,4'b0000}; //16bytes on a cache line
             rd_addr <= {tag, index,4'b0000};
@@ -259,5 +261,6 @@ module dmem_ram(
 
     `else
     // TODO: 2-way set associative
+        
     `endif 
 endmodule
