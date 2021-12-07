@@ -20,6 +20,16 @@ od -An -tx4 out.bin
 ```
 するとバイナリが読める。
 
+## (vivadoのシミュレータで）動いたプログラム
+fib.ml
+ack.ml
+sum.ml
+sum-tail.ml
+join_reg.ml
+join_reg2.ml
+join_stack.ml
+join_stack2.ml
+join_stack3.ml
 
 
 ## できたこと
