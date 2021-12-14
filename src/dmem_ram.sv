@@ -92,7 +92,7 @@ module dmem_ram(
     logic uart_en ;
     assign uart_en = daddr == 30'b0;
     logic dmem_en ;
-    assign dmem_en = daddr[29:25] == 5'b00000;
+    assign dmem_en = daddr[29:25] == 5'b00000 && ~uart_en;
 
 
     logic [7:0] rdata;
@@ -167,7 +167,7 @@ module dmem_ram(
     // dram u1(dec_daddr, arrive, data_arrived);
     logic hit;
     assign hit = tag_array[index] == tag && valid_array[index];
-    assign cache_nstall = ~(dec_mre || dec_mwe) || hit;
+    assign cache_nstall = ~dmem_en || ~(dec_mre || dec_mwe) || hit;
 
     logic [31:0] cache_data;
 
