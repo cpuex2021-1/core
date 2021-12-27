@@ -7,7 +7,7 @@ module writeback(
     output logic wb_mre
 );
     always_ff @( posedge clk ) begin 
-        if (rst) begin
+        if (rst || ~n_stall) begin
             wb_rd <= 0;
             wb_mre<= 0;
         end else begin

@@ -13,6 +13,7 @@
 // daddr [29:25] == 5'b11111 -> inst memory
 module dmem_ram(
         input  logic clk,rst,
+        input  logic n_stall,
         input  logic [29:0] daddr,
         input  logic dec_mre,
         input  logic dec_mwe,
@@ -78,13 +79,16 @@ module dmem_ram(
             //wb_memdata <=0;
             take_uart <= 0;
         end else begin
+            if(n_stall)begin
             take_uart <= uart_en;
+            end
 //            if(n_stall) begin
 //                wb_memdata <= uart_en ? {24'b0,rd_d} : cache_data; //for cache!
 //            end
         end
     end
-    assign wb_memdata = take_uart ? {24'b0, rd_d} : cache_data;
+
+    assign wb_memdata = (take_uart ? {24'b0, rd_d} : cache_data);
 
 
     //uart

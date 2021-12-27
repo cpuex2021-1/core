@@ -20,7 +20,7 @@ module imem_ram(
     initial begin
         for(i=0; i<4077; i=i+1)mem[i] = 0;
         //$readmemh("inst.mem", mem,0, 1023);
-        $readmemh("loader.mem", mem, 4068, 4095); //check pc
+        $readmemh("loader.mem", mem, 4071, 4095); //check pc
     end
     //assign inst = rst ? 0 : mem[pc[13:2]];
     always_ff @( posedge clk ) begin 

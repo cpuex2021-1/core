@@ -38,18 +38,27 @@ module simtop();
         //repeat(30) 
         #500;
         uart(3);
-        #10 uart(1);
-        #10 uart(2);
-        #10 uart(3);
-        #10 uart(4);
-        #10 uart(1);
-        #10 uart(2);
-        #10 uart(3);
-        #10 uart(4);       
-        #10 uart(1);
-        #10 uart(2);
-        #10 uart(3);
-        #10 uart(4);
+        uart(0);
+        uart(0);
+        uart(0);
+        
+        uart(8'd5);
+        uart(0);
+        uart(8'd128);
+        uart(1);
+        
+        uart(182);
+        uart(1);
+        uart(0);
+        uart(0);
+        
+        uart(135);
+        uart(0);
+        uart(0);
+        uart(0);
+        
+        uart(0);
+        
 
         //end
                 
