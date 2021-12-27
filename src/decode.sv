@@ -114,16 +114,16 @@ module decode(
 
     // for hazard 
     logic lw_hazard;
-    assign lw_hazard = ~(aluctl[5:1] == 5'b10100 && (dec_rd[5:0] == rs1 || dec_rd[5:0] == rs2)); // lw rd -> add .. rd
+    assign lw_hazard = (aluctl[5:1] == 5'b10100 && (dec_rd[5:0] == rs1 || dec_rd[5:0] == rs2)); // lw rd -> add .. rd
     
-    assign dec_nstall = lw_hazard | lw_nstall;
-    logic  lw_nstall; //
+    assign dec_nstall = ~lw_hazard ;
+    //logic  lw_nstall; //
 
     logic [31:0]daddr_;
     assign daddr_ = op[2] & op[0] ? rs1data + immIL : rs1data + immSB;
 
     always_ff @( posedge clk ) begin 
-        if(rst || flush)begin
+        if(rst || flush || (lw_hazard && n_stall))begin
             dec_op1 <= 0;
             dec_op2 <= 0;
             aluctl <= 0;
@@ -135,10 +135,8 @@ module decode(
             dec_jump <= 0;
             daddr <= 0;
             npc<= 0;
-            lw_nstall <= 1;
         end else begin
-            lw_nstall <= lw_hazard ? 0 :  n_stall;
-            if(n_stall && dec_nstall) begin
+            if(n_stall ) begin
                 dec_op1 <= n_op1;
                 dec_op2 <= n_op2;
                 //dec_imm <= op == 3'b110 ? immSB : immIL;

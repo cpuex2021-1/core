@@ -41,7 +41,15 @@ module simtop();
         #10 uart(1);
         #10 uart(2);
         #10 uart(3);
-        
+        #10 uart(4);
+        #10 uart(1);
+        #10 uart(2);
+        #10 uart(3);
+        #10 uart(4);       
+        #10 uart(1);
+        #10 uart(2);
+        #10 uart(3);
+        #10 uart(4);
 
         //end
                 
