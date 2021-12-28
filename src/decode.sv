@@ -91,7 +91,7 @@ module decode(
         endcase
     end                           
     logic [26:0] jaddr ;
-    assign jaddr = if_pc + {inst[30:6], 2'b00};
+    assign jaddr = {inst[30:6], 2'b00};
     logic [26:0] jaladdr;
     assign jaladdr = if_pc + {immIL[24:0], 2'b00};
     logic [26:0] jalraddr;
