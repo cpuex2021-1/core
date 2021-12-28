@@ -2,8 +2,8 @@
 
 module imem_ram(
         input  logic clk,rst,
-        input  logic [26:0] pc,
-        input  logic [26:0] npc,
+        input  logic [24:0] pc,
+        input  logic [24:0] npc,
         input  logic npc_enn,
         input  logic [29:0] daddr,
         input  logic [31:0] dec_op2,
@@ -11,16 +11,16 @@ module imem_ram(
         input  logic n_stall,
         input  logic flush,
         output logic [31:0] inst,
-        output logic [26:0] if_pc
+        output logic [24:0] if_pc
 
     );
 
-    (*ram_style = "block"*) logic [31:0] mem [4095:0];
+    (*ram_style = "block"*) logic [31:0] mem [16383:0];
     int i=0;
     initial begin
-        for(i=0; i<4077; i=i+1)mem[i] = 0;
-        //$readmemh("inst.mem", mem,0, 1023);
-        $readmemh("loader.mem", mem, 4071, 4095); //check pc
+        for(i=0; i<16359; i=i+1)mem[i] = 0;
+        $readmemh("inst.mem", mem,0, 1023);
+        $readmemh("loader.mem", mem, 16359, 16383); //check pc
     end
     //assign inst = rst ? 0 : mem[pc[13:2]];
     always_ff @( posedge clk ) begin 
@@ -30,14 +30,14 @@ module imem_ram(
         end else begin
             if(n_stall) begin
                 if(npc_enn) begin
-                    inst <= mem[npc[13:2]];
+                    inst <= mem[npc[13:0]];
                     if_pc <= npc;
                 end else begin
-                    inst <= mem[pc[13:2]];
+                    inst <= mem[pc[13:0]];
                     if_pc <= pc;
                 end
                 if (&daddr[29:25] & dec_mwe) begin
-                    mem[daddr[11:0]] <= dec_op2;
+                    mem[daddr[13:0]] <= dec_op2;
                 end
             end
         end

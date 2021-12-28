@@ -213,7 +213,6 @@ module ALU(
     logic [5:0] cond;
     logic eq, lt,ltu;
     logic branch;
-    logic [26:0] baddr;
 
     always_comb begin 
         eq = op1 == op2;

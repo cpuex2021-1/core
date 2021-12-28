@@ -51,9 +51,9 @@ module top(
     wire [6:0] dec_rd;  // {write enable(1), to freg(1), regiter number(5)}
     wire [31:0] dec_op1, dec_op2;
     wire [6:0] aluctl;
-    wire [26:0] pc;
-    wire [26:0] npc;
-    logic [26:0] if_pc;
+    wire [24:0] pc;
+    wire [24:0] npc;
+    logic [24:0] if_pc;
     (*mark_debug = "true"*)logic npc_enn;
     logic flush;
 

@@ -5,7 +5,7 @@
 module decode(
         input  logic clk, rst,
         input  logic [31:0] inst,
-        input  logic [26:0] if_pc,
+        input  logic [24:0] if_pc,
 
         output logic [31:0] dec_op1, dec_op2,
         output logic [6:0] aluctl,
@@ -13,7 +13,7 @@ module decode(
         output logic dec_mre, dec_mwe,
         output logic [6:0] dec_branch,
         output logic dec_jump,
-        output logic [26:0] npc,
+        output logic [24:0] npc,
         output logic [29:0] daddr,
 
         //forwarding
@@ -76,7 +76,7 @@ module decode(
             3'b101 : op1 = rs1data;
             3'b110 : op1 = rs1data;
             3'b111 : ; */
-            3'b111 : n_op1 = {5'b00000,if_pc};
+            3'b111 : n_op1 = {7'b0000000,if_pc};
             default: n_op1 = rs1data;
         endcase
         unique case (op)
@@ -87,15 +87,16 @@ module decode(
             3'b100 : n_op2 = immIL;
             3'b101 : n_op2 = immIL;
             3'b110 : n_op2 = rs2data;   
-            3'b111 : n_op2 = 32'd4; // may be illegal  do-siyo 
+            3'b111 : n_op2 = 32'd1; // may be illegal  do-siyo 
         endcase
     end                           
-    logic [26:0] jaddr ;
-    assign jaddr = {inst[30:6], 2'b00};
-    logic [26:0] jaladdr;
-    assign jaladdr = if_pc + {immIL[24:0], 2'b00};
-    logic [26:0] jalraddr;
-    assign jalraddr = rs1data[26:0] + {immIL[24:0],2'b00};
+    logic [24:0] jaddr ;
+    assign jaddr = inst[30:6];
+    logic [24:0] jaladdr;
+    //assign jaladdr = if_pc + immIL[24:0];
+    assign jaladdr =  immIL[24:0];
+    logic [24:0] jalraddr;
+    assign jalraddr = rs1data[24:0] + immIL[24:0];
     
     //for branch 
     // this may be critical path when multicycled  but for simplicity now calculating in decode stage
@@ -136,7 +137,7 @@ module decode(
             daddr <= 0;
             npc<= 0;
         end else begin
-            if(n_stall ) begin
+            if(n_stall) begin
                 dec_op1 <= n_op1;
                 dec_op2 <= n_op2;
                 //dec_imm <= op == 3'b110 ? immSB : immIL;
@@ -157,7 +158,7 @@ module decode(
                 dec_jump <= jump | jalr | jal;
                 npc <= jump ? jaddr :
                        jal ? jaladdr :
-                       jalr ? jalraddr: if_pc + {immSB[24:0], 2'b00};
+                       jalr ? jalraddr: if_pc + immSB[24:0];
                 daddr <= daddr_[29:0];
             end
         end
