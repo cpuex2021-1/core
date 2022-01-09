@@ -13,8 +13,8 @@ module PC(
     assign pc = pc_reg + 1;
     always_ff @(posedge clk) begin
         if (rst) begin
-            pc_reg <= -1;
-            //pc_reg <= 65432; //loader start
+            //pc_reg <= -1;
+            pc_reg <= 16355; //loader start
         end else begin
             if(n_stall) begin
                 if(npc_enn) begin

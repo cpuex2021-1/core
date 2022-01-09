@@ -13,7 +13,7 @@ module register(
     logic [31:0]  register [63:0];
 
     integer i;
-    initial begin for(i=0; i<64; i=i+1) register[i] = 0; register[2] = 32'h1ffffff;end
+    initial begin for(i=0; i<64; i=i+1) register[i] = 0; register[2] = 32'h1ffffff; register[3] = 32'h01000000; end
 
     assign rs1data_reg = rs1[4:0] == 5'b00000 ? 32'b0 : register[rs1[5:0]];
     assign rs2data_reg = rs2[4:0] == 5'b00000 ? 32'b0 : register[rs2[5:0]];

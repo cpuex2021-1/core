@@ -124,7 +124,9 @@ module ALU(
     
     // I/L  nearly same with R-type
     logic [31:0] lui;
-    assign lui = {op2[15:0], op1[15:0]};
+    logic [31:0] lui_;
+    assign lui_ = {op1[15:0] ,16'b0} + op2;
+    assign lui = lui_ << 12;
     
 
 

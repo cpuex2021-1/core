@@ -19,8 +19,8 @@ module imem_ram(
     int i=0;
     initial begin
         for(i=0; i<16359; i=i+1)mem[i] = 0;
-        $readmemh("inst.mem", mem,0, 1023);
-        $readmemh("loader.mem", mem, 16359, 16383); //check pc
+        //$readmemh("inst.mem", mem,0, 1023);
+        $readmemh("loader.mem", mem, 16356, 16383); //check pc
     end
     //assign inst = rst ? 0 : mem[pc[13:2]];
     always_ff @( posedge clk ) begin 
