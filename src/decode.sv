@@ -49,6 +49,8 @@ module decode(
     logic [31:0] immIL, immSB;
     assign immIL = {{16{inst[21]}}, inst[21:6]}; //sign extend
     assign immSB = {{16{inst[26]}}, inst[26:11]};//sign extend
+    logic [31:0] immLUI;
+    assign immLUI = {inst[30:27],inst[21:6], 12'b0};
    
     logic [31:0] rs1data_reg,rs2data_reg;
     logic [31:0] rs1data,rs2data;
@@ -85,7 +87,8 @@ module decode(
             3'b010 : n_op2 = rs2data;
             3'b011 : n_op2 = rs2data; //illegal!! for fmv
             3'b100 : n_op2 = immIL;
-            3'b101 : n_op2 = immIL;
+            3'b101 : if (funct==3'b010) n_op2 = immLUI;
+                     else n_op2 = immIL;
             3'b110 : n_op2 = rs2data;   
             3'b111 : n_op2 = 32'd1; // may be illegal  do-siyo 
         endcase
