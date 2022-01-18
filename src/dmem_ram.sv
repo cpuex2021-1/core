@@ -181,22 +181,25 @@ module dmem_ram(
 
     logic [31:0] c00,c01,c02,c03;
     assign wr_data = {c03, c02, c01, c00};
-    bram bram0(.clk, .rst, .addr(index), .wen(wen[0]), .wr_data(bram_wr_data[0]), .rd_data(c00));
-    bram bram1(.clk, .rst, .addr(index), .wen(wen[1]), .wr_data(bram_wr_data[1]), .rd_data(c01));
-    bram bram2(.clk, .rst, .addr(index), .wen(wen[2]), .wr_data(bram_wr_data[2]), .rd_data(c02));
-    bram bram3(.clk, .rst, .addr(index), .wen(wen[3]), .wr_data(bram_wr_data[3]), .rd_data(c03));
+    bram bram0(.clk, .rst, .addr(index), .wen(wen[0]), .wr_data(bram_wr_data0), .rd_data(c00));
+    bram bram1(.clk, .rst, .addr(index), .wen(wen[1]), .wr_data(bram_wr_data1), .rd_data(c01));
+    bram bram2(.clk, .rst, .addr(index), .wen(wen[2]), .wr_data(bram_wr_data2), .rd_data(c02));
+    bram bram3(.clk, .rst, .addr(index), .wen(wen[3]), .wr_data(bram_wr_data3), .rd_data(c03));
     logic wen[4];
-    logic [31:0] bram_wr_data [4];
+    logic [31:0] bram_wr_data0 ;
+    logic [31:0] bram_wr_data1 ;
+    logic [31:0] bram_wr_data2 ;
+    logic [31:0] bram_wr_data3 ;
     logic [1:0] offset_reg;
     always_comb begin 
         wen[0] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b00);
         wen[1] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b01);
         wen[2] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b10);
         wen[3] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b11);
-        bram_wr_data[0] = dec_mwe && offset == 2'b00 ?  op2 : rd_data[0+:32] ;
-        bram_wr_data[1] = dec_mwe && offset == 2'b01 ?  op2 : rd_data[32+:32] ;
-        bram_wr_data[2] = dec_mwe && offset == 2'b10 ?  op2 : rd_data[64+:32] ;
-        bram_wr_data[3] = dec_mwe && offset == 2'b11 ?  op2 : rd_data[96+:32] ;
+        bram_wr_data0 = dec_mwe && offset == 2'b00 ?  op2 : rd_data[0+:32] ;
+        bram_wr_data1 = dec_mwe && offset == 2'b01 ?  op2 : rd_data[32+:32] ;
+        bram_wr_data2 = dec_mwe && offset == 2'b10 ?  op2 : rd_data[95:64] ;
+        bram_wr_data3 = dec_mwe && offset == 2'b11 ?  op2 : rd_data[127:96] ;
         case (offset_reg)
             2'b00: cache_data = c00;
             2'b01: cache_data = c01;
@@ -251,7 +254,7 @@ module dmem_ram(
                 //read complete
             end else 
  
-            if((dec_mwe || dec_mre) && ~hit) begin
+            if(dmem_en && (dec_mwe || dec_mre) && ~hit) begin
                 //read from ddr and
                 //暫定ライトスルー
                 //ライトバックぐらいにはしたいね

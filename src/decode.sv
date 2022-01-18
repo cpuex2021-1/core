@@ -36,15 +36,16 @@ module decode(
     //logic rs2_valid;
     //assign rs2_valid = ~op[1] || op==3'b110; //rs2 reg is read
 
-    logic fromfreg ;
-    assign fromfreg = op == 3'b010 || {funct[2], op} == 4'b0011 || {funct[2], funct[0], op} == 5'b11011; //floatiing point and fmv.w.x
+    logic fromfreg1,fromfreg2 ;
+    assign fromfreg1 = op == 3'b010 || {funct[2], op} == 4'b0011 || {funct[2], funct[0], op} == 5'b11011 ; //floatiing point and fmv.w.x 
+    assign fromfreg2 = op == 3'b010 || {funct[2], op} == 4'b0011 || {funct[2], funct[0], op} == 5'b11011 || {funct,op} == 6'b111110; //floatiing point ,fmv.w.x and fsw
 
     logic tofreg ;
-    assign tofreg = op==3'b010 || ({funct[2], op} == 4'b1011 && ~&funct[1:0])  ; //fadd..fmax ,  fmv.w.x
+    assign tofreg = op==3'b010 || ({funct[2], op} == 4'b1011 && ~&funct[1:0]) || {funct,op} == 6'b001101  ; //fadd..fmax ,  fmv.w.x, flw
 
     logic [5:0] rs1, rs2;
-    assign rs1 = {fromfreg,inst[31:27]}; //rs1 is always valid
-    assign rs2 = {fromfreg,inst[10:6]};
+    assign rs1 = {fromfreg1,inst[31:27]}; //rs1 is always valid
+    assign rs2 = {fromfreg2,inst[10:6]};
     
     logic [31:0] immIL, immSB;
     assign immIL = {{16{inst[21]}}, inst[21:6]}; //sign extend
@@ -62,10 +63,10 @@ module decode(
     assign rddata = wb_mre? wb_memdata : wb_res;
     register register (.clk, .rst, .rs1(rs1[5:0]), .rs2(rs2[5:0]), .rs1data_reg, .rs2data_reg, .wb_rd, .rddata, .we( n_stall));   
     //fregister fregister(.clk, .rst, .rs1(rs1[5:0]), .rs2(rs2[5:0]), .frs1data_reg, .frs2data_reg, .wb_rd, .rddata, .we( n_stall));
-    assign rs1data = (rs1 == dec_rd[5:0] && rs1[5:0] != 0 && dec_alu) ? alu_fwd : 
-                    (rs1 == wb_rd[5:0] && rs1[5:0] !=0) ? rddata : rs1data_reg; //条件違う気がする
-    assign rs2data = (rs2 == dec_rd[5:0] && rs2[5:0] != 0 && dec_alu) ? alu_fwd :
-                    (rs2 == wb_rd[5:0] && rs2[5:0] != 0 )? rddata : rs2data_reg; 
+    assign rs1data = (rs1 == dec_rd[5:0] && rs1[4:0] != 0 && dec_alu) ? alu_fwd : 
+                    (rs1 == wb_rd[5:0] && rs1[4:0] !=0) ? rddata : rs1data_reg; //条件違う気がする //faddとかのフォワードできてる？
+    assign rs2data = (rs2 == dec_rd[5:0] && rs2[4:0] != 0 && dec_alu) ? alu_fwd :
+                    (rs2 == wb_rd[5:0] && rs2[4:0] != 0 )? rddata : rs2data_reg; 
     // for floting point!
     logic [31:0] n_op1, n_op2;
     always_comb begin
@@ -118,7 +119,7 @@ module decode(
 
     // for hazard 
     logic lw_hazard;
-    assign lw_hazard = (aluctl[5:1] == 5'b10100 && (dec_rd[5:0] == rs1 || dec_rd[5:0] == rs2)); // lw rd -> add .. rd
+    assign lw_hazard = ((aluctl[5:1] == 5'b10100) && (dec_rd[5:0] == rs1 || dec_rd[5:0] == rs2)); // lw rd -> add .. rd
     
     assign dec_nstall = ~lw_hazard ;
     //logic  lw_nstall; //
@@ -146,7 +147,7 @@ module decode(
                 //dec_imm <= op == 3'b110 ? immSB : immIL;
                 aluctl <= {inst[11], op, funct};
                 dec_rd  <= {op[2:1] != 2'b11 || jal || jalr, tofreg, inst[26:22]}; //rd valid not when branch,sw,jump 
-                dec_mwe <= op==3'b110 && funct[2:1] == 2'b11;
+                dec_mwe <= (op==3'b110 && funct[2:1] == 2'b11)  ;
                 dec_mre <= op==3'b101 && funct[2:1] == 2'b00;
                 dec_alu <= ~op[2] || // R style
                             op == 3'b100 ||  //I
