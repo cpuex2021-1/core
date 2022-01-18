@@ -27,10 +27,10 @@ module ALU(
     logic [31:0] add, sub, sll, srl, sra, slt, sltu, xorr, andd, orr;
     assign add = op1 +   op2;
     assign sub = op1 -   op2;
-    assign sll = op1 <<  op2;
-    assign srl = op1 >>  op2;
-    assign sra = op1 >>> op2;
-    assign slt = {31'b0, op1 <   op2};
+    assign sll = op1 <<  op2[4:0];
+    assign srl = op1 >>  op2[4:0];
+    assign sra = op1 >>> op2[4:0];
+    assign slt = {31'b0, $signed(op1) <   $signed(op2)};
     assign sltu= {31'b0, $unsigned(op1) < $unsigned(op2)};
     assign xorr= op1 ^   op2;
     assign andd= op1 &  op2;
@@ -93,10 +93,9 @@ module ALU(
     // latency 1: flt, fle, fmin, fmax
     // latency 2: fadd,fsub,fmul, fsqr
     // latency 3: fdiv
-    logic l0,l1,l2,l3;
+    logic l1,l2,l3;
     logic [5:0] functop;
     assign functop = aluctl[5:0];
-    assign l0 = functop == 6'b010000 || functop == 6'b010001 || functop == 6'b010010 || functop ==6'b011111 ;
     assign l1 = functop == 6'b011001 || functop == 6'b011010 || functop == 6'b010110 || functop == 6'b010111;
     assign l2 = functop == 6'b010000 || functop == 6'b010001 || functop == 6'b010010 || functop == 6'b010100;
     assign l3 = functop == 6'b010011 ;
@@ -212,11 +211,10 @@ module ALU(
 
     logic [5:0] cond;
     logic eq, lt,ltu;
-    logic branch;
 
     always_comb begin 
         eq = op1 == op2;
-        lt = op1 < op2;
+        lt = $signed(op1) < $signed(op2);
         ltu= $unsigned(op1) < $unsigned(op2);
         cond[0] = eq;
         cond[1] = ~eq;

@@ -9,15 +9,17 @@ module fsqr(
     logic [35:0] init_grad;
     logic s;
     logic [7:0] e;
-    logic [7:0] e_;
+    logic [8:0] e_;
     logic [22:0] m;
     logic [9:0] key;
     logic [13:0] diff;
     //assign s = a[31];
-    assign e_ = a[30:23];
+    assign e_ = {1'b0,a[30:23]};
     //assign e = (e_+8'b01111111) >>1;
     assign key = a[23:14];
     //assign diff = a[13:0];
+    logic [8:0] eadd;
+    assign eadd = e_ + 9'b001111111;
 
 
     sqrparam param(.clk,.rst, .key, .init_grad);
@@ -29,7 +31,7 @@ module fsqr(
              diff<= 0;
          end else begin
              s <= a[31];
-             e <= (e_+8'b01111111) >>1;
+             e <= eadd[8:1];
              diff <= a[13:0];
          end
      end

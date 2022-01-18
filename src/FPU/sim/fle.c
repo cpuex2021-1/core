@@ -25,8 +25,8 @@ int invalid_float(int x, int y){
 }
 
 int lt(int x, int y){
-    int xs = (x>>31) & 1;
-    int ys = (y>>31) & 1;
+    int xs = (x>>31) && 1;
+    int ys = (y>>31) && 1;
     int xe = (x>>23) & 0xff;
     int ye = (y>>23) & 0xff;
     int xm = x & 0x7fffff;
@@ -36,21 +36,25 @@ int lt(int x, int y){
     int ml = xm < ym;
     int absl = el | (eeq & ml);
 
-    int pp = 1- (xs & ys);
+    int pp = xs ==0 && ys ==0;
     int np = xs && ~ys;
-    int nn = xs & ys;
+    int nn = xs && ys;
 
     int emeq = (x & 0x3fffffff) == (y& 0x3fffffff);
-    //printf("x:%d xs:%d xe:%d xm:%d\n", x,xs,xe,xm);
-    //printf("y:%d ys:%d ye:%d ym:%d\n", y,ys,ye,ym);
-    //printf("el:%d eeq:%d mL:%d absl:%d pp:%d np:%d nn:%d\n", el,eeq,ml,absl,pp,np,nn);
+    printf("x:%d xs:%d xe:%d xm:%d\n", x,xs,xe,xm);
+    printf("y:%d ys:%d ye:%d ym:%d\n", y,ys,ye,ym);
+    printf("el:%d eeq:%d mL:%d absl:%d pp:%d np:%d nn:%d\n", el,eeq,ml,absl,pp,np,nn);
     return (pp&&absl) || np || (nn && ~absl && ~emeq) || x==y;
 }
 
 
 int main(){
     intfloat a,b;
-    for(int i=0; i<100000000; i++){
+    a.f = 0;
+    b.f = -1.25;
+    printf("x:%f y:%f", a.f,b.f);
+    printf("ans:%d res:%d\n", lt(a.i,b.i), a.f <= b.f);
+    /*for(int i=0; i<100000000; i++){
         a.i = rand();
         b.i = rand();
         if(!invalid_float(a.i, b.i)){
@@ -61,7 +65,7 @@ int main(){
                 printf("ans:%d res:%d\n", ans, res);
             }
         }
-    }
+    }*/
 
 
 }
