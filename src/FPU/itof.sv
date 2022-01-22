@@ -126,7 +126,8 @@ logic a2431 ;
     logic [7:0] ep;
     assign ep = e + 1;
 
-    assign c = up ? 
+    assign c = zero? 0 : 
+                up ? 
                 over ? {s, ep, 23'b0} : {s, e, m_cutp}
               : {s, e, m_cut};
     

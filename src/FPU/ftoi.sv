@@ -15,7 +15,8 @@ module ftoi(
     assign m[7:0] = 0;
     logic zero;
     assign zero = e < 8'd126;
-    logic one = e == 8'd126;
+    logic one;
+    assign one  = e == 8'd126;
     logic over;
     assign over = e > 8'd157;
     logic [7:0] pos_ ;
