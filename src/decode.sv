@@ -62,12 +62,10 @@ module decode(
     logic [31:0] rddata;
     assign rddata = wb_mre? wb_memdata : wb_res;
     register register (.clk, .rst, .rs1(rs1[5:0]), .rs2(rs2[5:0]), .rs1data_reg, .rs2data_reg, .wb_rd, .rddata, .we( n_stall));   
-    //fregister fregister(.clk, .rst, .rs1(rs1[5:0]), .rs2(rs2[5:0]), .frs1data_reg, .frs2data_reg, .wb_rd, .rddata, .we( n_stall));
     assign rs1data = (rs1 == dec_rd[5:0] && rs1[4:0] != 0 && dec_alu) ? alu_fwd : 
-                    (rs1 == wb_rd[5:0] && rs1[4:0] !=0) ? rddata : rs1data_reg; //条件違う気がする //faddとかのフォワードできてる？
+                    (rs1 == wb_rd[5:0] && rs1[4:0] !=0) ? rddata : rs1data_reg; //条件違う気がする
     assign rs2data = (rs2 == dec_rd[5:0] && rs2[4:0] != 0 && dec_alu) ? alu_fwd :
                     (rs2 == wb_rd[5:0] && rs2[4:0] != 0 )? rddata : rs2data_reg; 
-    // for floting point!
     logic [31:0] n_op1, n_op2;
     always_comb begin
         unique case (op) 
