@@ -29,7 +29,7 @@ module fifo(
 
         n_wr_addr = wr_en ? wr_addr + 1 : wr_addr;
         dif = rd_addr - wr_addr;
-        n_wr_full = rd_addr != wr_addr && dif < 2;
+        n_wr_full = rd_addr != wr_addr && dif < 4;
     end
 
     always_ff @( posedge clk ) begin 
