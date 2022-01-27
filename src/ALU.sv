@@ -96,18 +96,18 @@ module ALU(
     logic l1,l2,l3;
     logic [5:0] functop;
     assign functop = aluctl[5:0];
-    assign l1 = functop == 6'b011001 || functop == 6'b011010 || functop == 6'b010110 || functop == 6'b010111 || functop == 6'b011110 || functop == 6'b011111;
+    assign l1 = functop == 6'b011001 || functop == 6'b011010 || functop == 6'b010111 || functop == 6'b011110 || functop == 6'b011111;
     assign l2 = functop == 6'b010000 || functop == 6'b010001 || functop == 6'b010010 || functop == 6'b010100;
     assign l3 = functop == 6'b010011 ;
-    logic [31:0] fadd, fsub, fmul, fdiv, fsqrt, fneg, fmin, fmax;
+    logic [31:0] fadd, fsub, fmul, fdiv, fsqrt, fneg, fabs, floor;
     fadd_cy fad(.x1(op1), .x2(op2), .y(fadd), .clk, .rst);
     fsub fsu(.x(op1), .y(op2), .z(fsub), .clk, .rst);
     fmul fmu(.a(op1), .b(op2), .c(fmul), .clk, .rst);
     fdiv fdi(.x(op1), .y(op2), .z(fdiv), .clk, .rst);
     fsqr fsq(.a(op1), .b(op2), .c(fsqrt), .clk, .rst);
     fneg fne(.x(op1), .z(fneg));
-    fmin fmi(.x(op1), .y(op2), .z(fmin), .clk, .rst);
-    fmax fma(.x(op1), .y(op2), .z(fmax), .clk, .rst);
+    fabs fab(.x(op1), .z(fabs));
+    floor flo(.a(op1), .c(fabs), .clk, .rst);
     
     //floating point cond, mv
     logic [31:0] feq, flt, fle, fmvxw, fmvwx, fmv, itof, ftoi;
