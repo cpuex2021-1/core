@@ -149,7 +149,7 @@ module dmem_ram(
     //(* ram_style = "block" *) logic [31:0] cache03 [1023:0];
 
     (* ram_style = "distributed" *) logic [12:0] tag_array [1023:0];
-    (* ram_style = "distributed" *) logic valid_array [1023:0];
+    (* ram_style = "distributed" *) logic dirty_array [1023:0];
     logic [12:0] tag;
     logic [9:0] index;
     logic [1:0] offset;
@@ -162,7 +162,7 @@ module dmem_ram(
     initial begin 
         for (i=0; i<1024; i=i+1) begin
             tag_array[i] = 0;
-            valid_array[i] = 0;
+            dirty_array[i] = 0;
         end
         arrive = 0;
         data_arrived = 0;
@@ -170,7 +170,7 @@ module dmem_ram(
 
     // dram u1(dec_daddr, arrive, data_arrived);
     logic hit;
-    assign hit = tag_array[index] == tag && valid_array[index];
+    assign hit = tag_array[index] == tag ;
     assign cache_nstall = ~dmem_en || ~(dec_mre || dec_mwe) || hit;
 
     logic [31:0] cache_data;
@@ -192,10 +192,10 @@ module dmem_ram(
     logic [31:0] bram_wr_data3 ;
     logic [1:0] offset_reg;
     always_comb begin 
-        wen[0] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b00);
-        wen[1] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b01);
-        wen[2] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b10);
-        wen[3] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dec_mwe && hit && offset==2'b11);
+        wen[0] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dmem_en && dec_mwe && hit && offset==2'b00);
+        wen[1] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dmem_en && dec_mwe && hit && offset==2'b01);
+        wen[2] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dmem_en && dec_mwe && hit && offset==2'b10);
+        wen[3] = (rd_state == 2'b11 && rd_dready && rd_valid) || (dmem_en && dec_mwe && hit && offset==2'b11);
         bram_wr_data0 = dec_mwe && offset == 2'b00 ?  op2 : rd_data[0+:32] ;
         bram_wr_data1 = dec_mwe && offset == 2'b01 ?  op2 : rd_data[32+:32] ;
         bram_wr_data2 = dec_mwe && offset == 2'b10 ?  op2 : rd_data[95:64] ;
@@ -218,6 +218,7 @@ module dmem_ram(
             rd_dready <= 0;
             offset_reg <= 0;
         end else begin
+            if(dmem_en && dec_mwe && hit) dirty_array[index] <= 1;
             offset_reg <= daddr[1:0];
             //wr_data <= {cache00[index],cache01[index],cache02[index],cache03[index]};
             wr_addr <= {tag_array[index],index,4'b0000}; //16bytes on a cache line
@@ -249,7 +250,7 @@ module dmem_ram(
             if(rd_state == 2'b11 && rd_dready && rd_valid) begin
                 rd_dready <= 0;
                 tag_array[index] <= tag;
-                valid_array[index] <= 1;
+                dirty_array[index] <= 0;
                 rd_state <= 2'b00;
                 //read complete
             end else 
@@ -259,7 +260,7 @@ module dmem_ram(
                 //暫定ライトスルー
                 //ライトバックぐらいにはしたいね
                 if(wr_state == 2'b00 && rd_state == 2'b00) begin
-                    wr_state <= 2'b01;
+                    if(dirty_array[index]) wr_state <= 2'b01;
                     rd_state <= 2'b01;
                 end
             end
