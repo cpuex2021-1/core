@@ -96,7 +96,7 @@ module ALU(
     logic l1,l2,l3;
     logic [5:0] functop;
     assign functop = aluctl[5:0];
-    assign l1 = functop == 6'b011001 || functop == 6'b011010 || functop == 6'b010110 || functop == 6'b010111;
+    assign l1 = functop == 6'b011001 || functop == 6'b011010 || functop == 6'b010110 || functop == 6'b010111 || functop == 6'b011110 || functop == 6'b011111;
     assign l2 = functop == 6'b010000 || functop == 6'b010001 || functop == 6'b010010 || functop == 6'b010100;
     assign l3 = functop == 6'b010011 ;
     logic [31:0] fadd, fsub, fmul, fdiv, fsqrt, fneg, fmin, fmax;
@@ -117,8 +117,8 @@ module ALU(
     assign fmvwx= op1;
     assign fmvxw= op1;
     assign fmv  = op1;
-    itof itoff(.a(op1), .c(itof));
-    ftoi ftoii(.a(op1), .c(ftoi));
+    itof itoff(.clk, .rst, .a(op1), .c(itof));
+    ftoi ftoii(.clk, .rst, .a(op1), .c(ftoi));
     
     
     // I/L  nearly same with R-type

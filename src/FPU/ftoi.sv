@@ -1,4 +1,5 @@
 module ftoi(
+    input  logic clk,rst,
     input  logic [31:0] a,
     output logic [31:0] c
 );
@@ -33,7 +34,16 @@ module ftoi(
     assign res = zero ? 0 : 
                one  ? 1 : 
                over ? 32'h80000000 : cm;
-    assign c = s ? ~res + 1: res;
+    //assign c = s ? ~res + 1: res;
+    always_ff @( posedge clk ) begin 
+        if(rst) begin
+            c <= 0;
+        end else begin
+            c <= s ? ~res + 1: res;
+        end
+
+        
+    end
 
 
 

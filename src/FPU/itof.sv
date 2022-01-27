@@ -1,4 +1,5 @@
 module itof(
+    input logic clk,rst,
     input logic [31:0] a,
     output logic [31:0] c
 );
@@ -126,10 +127,22 @@ logic a2431 ;
     logic [7:0] ep;
     assign ep = e + 1;
 
-    assign c = zero? 0 : 
+    /*assign c = zero? 0 : 
+                up ? 
+                over ? {s, ep, 23'b0} : {s, e, m_cutp}
+              : {s, e, m_cut};*/
+    always_ff @( posedge clk ) begin
+        if(rst) begin
+            c <= 0;
+        end  else begin
+            c <=zero? 0 : 
                 up ? 
                 over ? {s, ep, 23'b0} : {s, e, m_cutp}
               : {s, e, m_cut};
+
+        end
+        
+    end
     
 
 
