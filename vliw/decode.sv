@@ -35,6 +35,9 @@ module decode(
    
     logic [31:0] inst1, inst2, inst3, inst4;
     assign {inst1, inst2, inst3, inst4} = inst;
+    logic n_nop1, n_nop2;
+    assign n_nop1 = |inst1;
+    assign n_nop2 = |inst2;
     logic [5:0] rs11, rs12, rd1;
     logic [5:0] rs21, rs22, rd2;
     logic [5:0] rs31, rs32, rd3;
@@ -109,6 +112,10 @@ module decode(
         rs12data = 0;
         rs21data = 0;
         rs22data = 0;
+        rs31data = 0;
+        rs32data = 0;
+        rs41data = 0;
+        rs42data = 0;
         if (rs11 == 0)begin
             rs11data = 32'b0;
         end else if (rs11 == dec_rd1[5:0]) begin
@@ -176,7 +183,7 @@ module decode(
         end else if (rs21 == wb_rd4[5:0]) begin
             rs21data = wb_memdata4;
         end else rs21data = rs21data_reg;
-
+        
 
         if (rs22 == 0)begin
             rs22data = 32'b0;
@@ -199,6 +206,97 @@ module decode(
         end else if (rs22 == wb_rd4[5:0]) begin
             rs22data = wb_memdata4;
         end else rs22data = rs22data_reg;
+
+        if (rs31 == 0)begin
+            rs31data = 32'b0;
+        end else if (rs31 == dec_rd1[5:0]) begin
+            rs31data = alu_fwd1;
+        end else if (rs31 == dec_rd2[5:0]) begin
+            rs31data = alu_fwd2;
+        end else if (rs31 == dec_rd3[5:0]) begin
+            //lw hazard
+            dec_stall = 1;
+        end else if (rs31 == dec_rd4[5:0]) begin
+            //lw hazard
+            dec_stall = 1;
+        end else if (rs31 == wb_rd1[5:0]) begin
+            rs31data = wb_res1;
+        end else if (rs31 == wb_rd2[5:0]) begin
+            rs31data = wb_res2; 
+        end else if (rs31 == wb_rd3[5:0]) begin
+            rs31data = wb_memdata3;
+        end else if (rs31 == wb_rd4[5:0]) begin
+            rs31data = wb_memdata4;
+        end else rs31data = rs31data_reg;
+
+
+
+         if (rs32 == 0)begin
+            rs32data = 32'b0;
+        end else if (rs32 == dec_rd1[5:0]) begin
+            rs32data = alu_fwd1;
+        end else if (rs32 == dec_rd2[5:0]) begin
+            rs32data = alu_fwd2;
+        end else if (rs32 == dec_rd3[5:0]) begin
+            //lw hazard
+            dec_stall = 1;
+        end else if (rs32 == dec_rd4[5:0]) begin
+            //lw hazard
+            dec_stall = 1;
+        end else if (rs32 == wb_rd1[5:0]) begin
+            rs32data = wb_res1;
+        end else if (rs32 == wb_rd2[5:0]) begin
+            rs32data = wb_res2; 
+        end else if (rs32 == wb_rd3[5:0]) begin
+            rs32data = wb_memdata3;
+        end else if (rs32 == wb_rd4[5:0]) begin
+            rs32data = wb_memdata4;
+        end else rs32data = rs32data_reg;
+        if (rs41 == 0)begin
+            rs41data = 32'b0;
+        end else if (rs41 == dec_rd1[5:0]) begin
+            rs41data = alu_fwd1;
+        end else if (rs41 == dec_rd2[5:0]) begin
+            rs41data = alu_fwd2;
+        end else if (rs41 == dec_rd3[5:0]) begin
+            //lw hazard
+            dec_stall = 1;
+        end else if (rs41 == dec_rd4[5:0]) begin
+            //lw hazard
+            dec_stall = 1;
+        end else if (rs41 == wb_rd1[5:0]) begin
+            rs41data = wb_res1;
+        end else if (rs41 == wb_rd2[5:0]) begin
+            rs41data = wb_res2; 
+        end else if (rs41 == wb_rd3[5:0]) begin
+            rs41data = wb_memdata3;
+        end else if (rs41 == wb_rd4[5:0]) begin
+            rs41data = wb_memdata4;
+        end else rs41data = rs41data_reg;
+
+
+
+         if (rs32 == 0)begin
+            rs32data = 32'b0;
+        end else if (rs32 == dec_rd1[5:0]) begin
+            rs32data = alu_fwd1;
+        end else if (rs32 == dec_rd2[5:0]) begin
+            rs32data = alu_fwd2;
+        end else if (rs32 == dec_rd3[5:0]) begin
+            //lw hazard
+            dec_stall = 1;
+        end else if (rs32 == dec_rd4[5:0]) begin
+            //lw hazard
+            dec_stall = 1;
+        end else if (rs32 == wb_rd1[5:0]) begin
+            rs32data = wb_res1;
+        end else if (rs32 == wb_rd2[5:0]) begin
+            rs32data = wb_res2; 
+        end else if (rs32 == wb_rd3[5:0]) begin
+            rs32data = wb_memdata3;
+        end else if (rs32 == wb_rd4[5:0]) begin
+            rs32data = wb_memdata4;
+        end else rs32data = rs32data_reg;
  
     end
     logic [31:0] n_op12,n_op22;
@@ -246,7 +344,8 @@ module decode(
     assign jal = op==3'b111 && funct==3'b001;
     logic jalr;
     assign jalr = op==3'b111 && funct == 3'b010 ;*/
-    logic [13:0] immPC = inst1[25:12];
+    logic [13:0] immPC;
+    assign immPC = inst1[25:12];
 
 
 
@@ -304,8 +403,8 @@ module decode(
                 //dec_imm <= op == 3'b110 ? immSB : immIL;
                 aluctl1 <= {op1, funct1};
                 aluctl2 <= {op2, funct2};
-                dec_rd1  <= {op1[2]==1'b0 && op1==3'b100 || {funct1,op1} == 6'b010111, rd1} ; //R LUI CALLCLS
-                dec_rd2  <= {op2[2]==1'b0 , rd2} ; 
+                dec_rd1  <= {(op1[2]==1'b0 || op1==3'b100 || {funct1,op1} == 6'b010111) && n_nop1, rd1} ; //R LUI CALLCLS
+                dec_rd2  <= {(op2[2]==1'b0 || op1==3'b100) && n_nop2, rd2} ; 
                 dec_rd3  <= {op3==3'b101 , rd3};
                 dec_rd4  <= {op4==3'b101 , rd4};
                 dec_mre3 <= op3==3'b101;
