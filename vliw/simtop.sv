@@ -209,7 +209,8 @@ logic [7:0] send_bin[0:167] = {
     sim_axi_vip_0_0_slv_mem_t agent;
     initial begin
 
-       agent = new("AXI Slave Agent", dut.sim_i.axi_vip_0.inst.IF);
+       agent = new("AXI Slave Agent", dut.axi_vip_0.inst.IF);
+     
         agent.start_slave();
     end
 endmodule
