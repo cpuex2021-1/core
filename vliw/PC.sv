@@ -30,7 +30,6 @@ module PC(
     logic jabs, jreg;
     assign jabs = op==3'b111 && funct[2:1] == 2'b00;
     assign jreg = op==3'b111 && funct[2:1] == 2'b01;
-    logic ret;
 
     always_ff @(posedge clk) begin
         if (rst) begin
