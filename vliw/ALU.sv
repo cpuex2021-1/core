@@ -4,7 +4,7 @@ module ALU(
         input  logic clk, rst,
         input  logic stall,
         input  logic [31:0] op1, op2,
-        input  logic [6:0]  aluctl,
+        input  logic [5:0]  aluctl,
         //input  logic [6:0] dec_branch,  // {do_branch, geu, ltu, ge, lt ,ne, eq}
         //input  logic       dec_jump,
         output logic [31:0] wb_res,

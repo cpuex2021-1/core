@@ -15,8 +15,8 @@ module decode(
         output logic [6:0] dec_rd1,dec_rd2, dec_rd3, dec_rd4,
         output logic dec_mre3, dec_mwe3,
         output logic dec_mre4, dec_mwe4,
-        output logic [6:0] dec_branch,
-        output logic dec_jump,
+        output logic beq, bne, blt, bge,
+        output logic dec_jumpr,
         output logic [13:0] npc,
         output logic [29:0] daddr3,daddr4,
 
@@ -109,7 +109,7 @@ module decode(
         rs12data = 0;
         rs21data = 0;
         rs22data = 0;
-        unique if (rs11 == 0)begin
+        if (rs11 == 0)begin
             rs11data = 32'b0;
         end else if (rs11 == dec_rd1[5:0]) begin
             rs11data = alu_fwd1;
@@ -133,7 +133,7 @@ module decode(
              rs11data = rs11data_reg;
         end
 
-        unique if (rs12 == 0)begin
+        if (rs12 == 0)begin
             rs12data = 32'b0;
         end else if (rs12 == dec_rd1[5:0]) begin
             rs12data = alu_fwd1;
@@ -155,7 +155,7 @@ module decode(
             rs12data = wb_memdata4;
         end else rs12data = rs12data_reg;
         
-        unique if (rs21 == 0)begin
+        if (rs21 == 0)begin
             rs21data = 32'b0;
         end else if (rs21 == dec_rd1[5:0]) begin
             rs21data = alu_fwd1;
@@ -178,7 +178,7 @@ module decode(
         end else rs21data = rs21data_reg;
 
 
-        unique if (rs22 == 0)begin
+        if (rs22 == 0)begin
             rs22data = 32'b0;
         end else if (rs22 == dec_rd1[5:0]) begin
             rs22data = alu_fwd1;
@@ -207,16 +207,17 @@ module decode(
         unique case (op1)
             3'b000 : n_op12 = rs12data;
             3'b010 : n_op12 = rs12data;
-            3'b011 : n_op12 = rs12data; //illegal!! for fmv
+            3'b011 : n_op12 = rs12data; 
             3'b100 : n_op12 = immI1;
             3'b101 : n_op12 = immLUI1;
-            3'b110 : n_op12 = rs12data;   
+            3'b110 : if(funct1==3'b101) n_op12 = {26'b0, rs12};   
+                     else              n_op12 = rs12data;
             default: n_op12 = 32'b0;
         endcase
         unique case (op2)
             3'b000 : n_op22 = rs22data;
             3'b010 : n_op22 = rs22data;
-            3'b011 : n_op22 = rs22data; //illegal!! for fmv
+            3'b011 : n_op22 = rs22data; 
             3'b100 : n_op22 = immI2;
             3'b101 : n_op22 = immLUI2;
             3'b110 : n_op22 = rs22data;   
@@ -251,7 +252,8 @@ module decode(
 
     
 
-    // for hazard 
+    logic jumpr;
+    assign jumpr = funct1[2:1] == 2'b01 && op1 == 3'b111;
     
     //logic  lw_nstall; //
 
@@ -259,8 +261,6 @@ module decode(
     assign daddr3_ = op3[2] & op3[0] ? rs31data + immL3 : rs31data + immS3;
     assign daddr4_ = op4[2] & op4[0] ? rs41data + immL4 : rs41data + immS4;
 
-    logic callcls;
-    assign callcls = {funct1,op1} == 6'b010111;
 
     always_ff @( posedge clk ) begin 
         if(rst || flush || (dec_stall && ~stall))begin
@@ -282,8 +282,11 @@ module decode(
             dec_mwe3 <= 0;
             dec_mre4 <= 0;
             dec_mwe4 <= 0;
-            dec_branch <= 0;
-            dec_jump <= 0;
+            beq      <= 0;
+            bne      <= 0;
+            blt      <= 0;
+            bge      <= 0;
+            dec_jumpr <= 0;
             daddr3 <= 0;
             daddr4 <= 0;
             npc<= 0;
@@ -312,15 +315,12 @@ module decode(
                 /*dec_alu <= ~op[2] || // R style
                             op == 3'b100 ||  //I
                             {funct,op} == 6'b010101;  //LUI やっぱこれだけ汚いね*/
-                dec_branch[0] <= funct1==3'b000;//eq
-                dec_branch[1] <= funct1==3'b001;//ne
-                dec_branch[2] <= funct1==3'b010;//lt
-                dec_branch[3] <= funct1==3'b011;//ge
-                dec_branch[4] <= funct1==3'b100;//ltu
-                dec_branch[5] <= funct1==3'b101;//geu
-                dec_branch[6] <= op1==3'b110 && ~&funct1[2:1];
-                dec_jump <= callcls;
-                npc <= callcls ? rs11data[13:0] : immPC;
+                beq  <= {op1,funct1} == 6'b000110;
+                bne  <= {op1,funct1} == 6'b001110;
+                blt  <= {op1,funct1} == 6'b010110;
+                bge  <= {op1,funct1} == 6'b011110;
+                dec_jumpr <= jumpr;
+                npc <= jumpr ? rs11data[13:0] : immPC;
                 daddr3 <= daddr3_[29:0];
                 daddr4 <= daddr4_[29:0];
             end

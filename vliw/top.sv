@@ -69,6 +69,9 @@ module top(
     logic [13:0] npc;
     logic [29:0] daddr3,daddr4;
 
+    logic beq, bne, blt , bge;
+    logic dec_jumpr;
+
     logic [31:0] alu_fwd1,alu_fwd2;
 
     logic [31:0] wb_res1,wb_res2;
@@ -98,13 +101,14 @@ module top(
                     .aluctl1, .aluctl2, 
                     .dec_rd1, .dec_rd2, .dec_rd3, .dec_rd4,
                     .dec_mre3, .dec_mwe3, .dec_mre4, .dec_mwe4,
-                    .dec_branch, .dec_jump,
+                    .beq , .bne, .blt, .bge, .dec_jumpr,
                     .npc,
                     .daddr3, .daddr4,
                     .alu_fwd1, .alu_fwd2,.wb_res1, .wb_res2,
                     .wb_memdata3, .wb_memdata4,
                     .wb_rd1, .wb_rd2, .wb_rd3, .wb_rd4,
                     .stall, .flush,.dec_stall);
+    branchjump bj(.op11(dec_op11), .op12(dec_op12), .beq, .bne, .blt, .bge, .dec_jumpr,.npc_enn);
 
     // decode output ↓
     // Dec & RF <-> ALU + MA
