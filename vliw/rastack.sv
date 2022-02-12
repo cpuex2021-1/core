@@ -2,6 +2,7 @@ module rastack(
     input  logic clk,rst,
     input  logic [13:0] pc,
     input  logic push,
+    input  logic pop,
     output logic [13:0] ra
 );
     localparam stacksize = 9;
@@ -18,6 +19,7 @@ module rastack(
             sp <= 0;
         end else begin
             if(push)sp <= sp+1;
+            else if(pop) sp <= sp-1;
         end
     end
 endmodule
