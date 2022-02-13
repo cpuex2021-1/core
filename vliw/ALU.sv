@@ -44,9 +44,9 @@ module ALU(
     // 
     always_ff @( posedge clk ) begin 
         if(rst) begin
-            cnt <= 4'b1111;
+            cnt <= 4'b0000;
         end else begin
-            if(l1) begin
+            /*if(l1) begin
                 if(cnt == 4'b1111) begin
                     cnt <= 4'b0111;
                 end else begin
@@ -64,10 +64,12 @@ module ALU(
                 end else begin
                     cnt <= {cnt[2:0], 1'b1};
                 end
-            end
+            end*/
+            cnt <= stall ? {cnt[2:0] ,1'b1} : 4'b0;
         end
     end
-    assign alu_stall = ((l1 || l2 || l3) && cnt!=4'b0111);
+    //assign alu_stall = ((l1 || l2 || l3) && cnt!=4'b0111);
+    assign alu_stall = l1 && ~|cnt[2:0] || l2 && ~|cnt[2:1] || l3 && ~cnt[2];
     // latency 0: fneg, feq
     // latency 1: flt, fle, fmin, fmax
     // latency 2: fadd,fsub,fmul, fsqr
