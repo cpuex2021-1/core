@@ -31,8 +31,8 @@ module ifetch(
     assign push = op == 3'b111 && funct[2:1] == 2'b01;
     logic [13:0] ra;
     logic pop;
-    assign pop = inst1[5:0] == 6'b100111;
-    rastack ras(.clk, .rst, .npc(pc), .push, .ra, .pop);
+    assign pop = inst1[5:0] == 6'b100111 && ~npc_enn;
+    rastack ras(.clk, .rst,.stall, .npc(pc), .push, .ra, .pop);
     logic [13:0] pcp1;
     logic [13:0] addr;
     assign addr = inst1[19:6];
@@ -52,7 +52,7 @@ module ifetch(
             if(~stall) begin
                 if(npc_enn) begin
                     inst <= mem[npc];
-                    pc <= npc;
+                    pc <= npc+1;
                 end else if(jabs) begin
                     inst <= mem[addr];
                     pc <= addr+1;

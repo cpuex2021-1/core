@@ -1,5 +1,5 @@
 module rastack(
-    input  logic clk,rst,
+    input  logic clk,rst,stall,
     input  logic [13:0] npc,
     input  logic push,
     input  logic pop,
@@ -20,9 +20,11 @@ module rastack(
         if(rst) begin
             sp <= -1;
         end else begin
-            if(push)stack[sp1] <= npc;
-            if(push)sp <= sp1;
-            else if(pop) sp <= sp-1;
+            if(~stall)begin
+                if(push)stack[sp1] <= npc;
+                if(push)sp <= sp1;
+                else if(pop) sp <= sp-1;
+            end
         end
     end
 endmodule

@@ -34,9 +34,9 @@ module decode(
    
     logic [31:0] inst1, inst2, inst3, inst4;
     assign {inst1, inst2, inst3, inst4} = inst;
-    logic n_nop1, n_nop2;
+    /*logic n_nop1, n_nop2;
     assign n_nop1 = |inst1;
-    assign n_nop2 = |inst2;
+    assign n_nop2 = |inst2;*/
     logic [5:0] rs11, rs12, rd1;
     logic [5:0] rs21, rs22, rd2;
     logic [5:0] rs31, rs32, rd3;
@@ -400,8 +400,8 @@ module decode(
                 //dec_imm <= op == 3'b110 ? immSB : immIL;
                 aluctl1 <= {op1, funct1};
                 aluctl2 <= {op2, funct2};
-                dec_rd1  <= {(op1[2]==1'b0 || op1==3'b100 || {funct1,op1} == 6'b010101) && n_nop1, rd1} ; //R LUI CALLCLS
-                dec_rd2  <= {(op2[2]==1'b0 || op1==3'b100 ||  {funct2,op2} == 6'b010101) && n_nop2, rd2} ; 
+                dec_rd1  <= {(op1[2]==1'b0 || op1==3'b100 || {funct1,op1} == 6'b010101) /*&& n_nop1*/, rd1} ; //R LUI CALLCLS
+                dec_rd2  <= {(op2[2]==1'b0 || op2==3'b100 || {funct2,op2} == 6'b010101) /*&& n_nop2*/, rd2} ; 
                 dec_rd3  <= {op3==3'b101 , rd3};
                 dec_rd4  <= {op4==3'b101 , rd4};
                 dec_mre3 <= op3==3'b101;
