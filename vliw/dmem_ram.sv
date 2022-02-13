@@ -74,6 +74,7 @@ module dmem_ram(
 
     );
     logic take_uart3, take_uart4;
+    logic take_scratch3, take_scratch4;
     always_ff @( posedge clk ) begin 
         if(rst)begin
             //wb_memdata <=0;
@@ -83,15 +84,37 @@ module dmem_ram(
             if(~stall)begin
             take_uart3 <= uart_en3;
             take_uart4 <= uart_en4;
+            take_scratch3 <= scratch_en3;
+            take_scratch4 <= scratch_en4;
             end
 //            if(n_stall) begin
 //                wb_memdata <= uart_en ? {24'b0,rd_d} : cache_data; //for cache!
 //            end
         end
     end
+    logic [31:0] scratch_data3, scratch_data4;
+    logic scratch_en3, scratch_en4;
+    assign scratch_en3 = &daddr3[29:9];
+    assign scratch_en4 = &daddr4[29:9];
+    logic [8:0] scratch_addr3,scratch_addr4;
+    assign scratch_addr3 = daddr3[8:0];
+    assign scratch_addr4 = daddr4[8:0];
+    // here scratch pad
+    scratchpad scratch(
+  .clka(clk),    // input wire clka
+  .wea(scratch_en3&& dec_mwe3),      // input wire [0 : 0] wea
+  .addra(scratch_addr3),  // input wire [8 : 0] addra
+  .dina(op32),    // input wire [31 : 0] dina
+  .douta(scratch_data3),  // output wire [31 : 0] douta
+  .clkb(clk),    // input wire clkb
+  .web(scratch_en4 && dec_mwe4),      // input wire [0 : 0] web
+  .addrb(scratch_addr4),  // input wire [8 : 0] addrb
+  .dinb(op42),    // input wire [31 : 0] dinb
+  .doutb(scratch_data4)  // output wire [31 : 0] doutb
+);
 
-    assign wb_memdata3 = (take_uart3 ? {24'b0, rd_d} : cache_data3);
-    assign wb_memdata4 = (take_uart4 ? {24'b0, rd_d} : cache_data4);
+    assign wb_memdata3 = (take_uart3 ? {24'b0, rd_d} : (take_scratch3 ? scratch_data3 : cache_data3));
+    assign wb_memdata4 = (take_uart4 ? {24'b0, rd_d} : (take_scratch4 ? scratch_data4 : cache_data4));
 
 
     //uart
@@ -118,7 +141,7 @@ module dmem_ram(
     logic rd_empty;
     uart_rx rx(.clk, .rst, .rxd, .rdata, .rvalid);
     fifo fifo_rx(.clk, .rst, .wr_d(rdata), .wr_en(rvalid),.wr_full(wr_full), .rd_d, .rd_en, .rd_empty(rd_empty));
-    assign rd_en = ((dec_mre3 & uart_en3) | (dec_mre4 & uart_en4)) & ~rd_empty;
+    assign rd_en = ((dec_mre3 & uart_en3) | (dec_mre4 & uart_en4)) & ~rd_empty & ~stall;
     assign rx_valid = ~rd_empty;
     
 
@@ -130,7 +153,7 @@ module dmem_ram(
     logic [7:0] wr_d;
     assign wr_d = uart_en3 ? op32[7:0] : op42[7:0];
     logic wr_en;
-    assign wr_en = ((dec_mwe3 & uart_en3) | (dec_mwe4 & uart_en4)) & ~tx_full;
+    assign wr_en = ((dec_mwe3 & uart_en3) | (dec_mwe4 & uart_en4)) & ~tx_full & ~stall;
     fifo fifo_tx(.clk, .rst, .wr_d, .wr_en, .wr_full(tx_full), .rd_d(tdata), .rd_en(~tx_empty & tready), .rd_empty(tx_empty));
     assign tx_ready = ~tx_full;
 
@@ -164,7 +187,7 @@ module dmem_ram(
     //(* ram_style = "block" *) logic [31:0] cache03 [1023:0];
 
     (* ram_style = "distributed" *) logic [10:0] tag_array [4095:0];
-    (* ram_style = "distributed" *) logic dirty_array [4095:0];
+    (* ram_style = "distributed" *) logic dirty_array [2][4095:0];
     logic [10:0] tag3,tag4;
     logic [11:0] index3, index4;
     logic [1:0] offset3, offset4;
@@ -176,7 +199,8 @@ module dmem_ram(
     initial begin 
         for (i=0; i<4096; i=i+1) begin
             tag_array[i] = 0;
-            dirty_array[i] = 0;
+            dirty_array[0][i] = 0;
+            dirty_array[1][i] = 0;
         end
     end
 
@@ -309,8 +333,8 @@ blk_mem_gen_0 cache(
         end else begin
             offset3_reg <= offset3;
             offset4_reg <= offset4;
-            if(dmem_en3 && dec_mwe3 && hit3_now) dirty_array[index3] <= 1;
-            if(dmem_en4 && dec_mwe4 && hit4_now) dirty_array[index4] <= 1;
+            if(dmem_en3 && dec_mwe3 && hit3_now) dirty_array[0][index3] <= 1;
+            if(dmem_en4 && dec_mwe4 && hit4_now) dirty_array[1][index4] <= 1;
             if(hit3_now) cache_hit_data3 <= cache_data3;
             if(hit4_now) cache_hit_data4 <= cache_data4;
             hit3_reg  <= hit3_now;
@@ -348,7 +372,8 @@ blk_mem_gen_0 cache(
             if(rd_state == 2'b11 && rd_dready && rd_valid) begin
                 rd_dready <= 0;
                 tag_array[index] <= tag;
-                dirty_array[index] <= 0;
+                dirty_array[0][index] <= 0;
+                dirty_array[1][index] <= 0;
                 rd_state <= 2'b00;
                 //read complete
             end else 
@@ -363,7 +388,7 @@ blk_mem_gen_0 cache(
                     rd_addr <= {tag3, index3,4'b0000};
                     tag <= tag3;
                     index <= index3;
-                    if(dirty_array[index]) wr_state <= 2'b01;
+                    if(dirty_array[0][index3] || dirty_array[1][index3]) wr_state <= 2'b01;
                     rd_state <= 2'b01;
                 end
             end else if ((~use3 || hit3 ) && use4 && ~hit4 ) begin
@@ -373,7 +398,7 @@ blk_mem_gen_0 cache(
                     wr_addr <= {tag_array[index4],index4,4'b0000}; //16bytes on a cache line
                     tag     <= tag4;
                     index   <= index4;
-                    if(dirty_array[index] || dec_mwe3 && index3==index4 ) wr_state <= 2'b01;
+                    if(dirty_array[0][index4] || dirty_array[1][index4] || dec_mwe3 && index3==index4 ) wr_state <= 2'b01;
                     rd_state <= 2'b01;
                 end
             end
