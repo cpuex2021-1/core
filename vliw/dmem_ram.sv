@@ -219,7 +219,8 @@ blk_mem_gen_0 cache(
     always_comb begin 
         we3 = 16'h0000;
         we4 = 16'h0000;
-        if(rd_state == 2'b11 && rd_dready && rd_valid && ~hit3_now) we3 = 16'hffff; // plus information for 3 or 4 from dram
+        if(daddr3 == daddr4 && dec_mwe3 && dec_mwe4) we3 = 0;
+        else if(rd_state == 2'b11 && rd_dready && rd_valid && ~hit3_now) we3 = 16'hffff; // plus information for 3 or 4 from dram
         else if(use3 && hit3_now && dec_mwe3) begin
             unique case (offset3) 
                 2'b00: we3 = 16'h000f;
@@ -243,7 +244,7 @@ blk_mem_gen_0 cache(
             unique case(offset3) 
                 2'b00 : din3 = {96'b0, op32       };
                 2'b01 : din3 = {64'b0, op32, 32'b0};
-                2'b01 : din3 = {32'b0, op32, 64'b0};
+                2'b10 : din3 = {32'b0, op32, 64'b0};
                 2'b11 : din3 = {       op32, 96'b0};
             endcase
         end else begin
@@ -253,7 +254,7 @@ blk_mem_gen_0 cache(
             unique case(offset4) 
                 2'b00 : din4 = {96'b0, op42       };
                 2'b01 : din4 = {64'b0, op42, 32'b0};
-                2'b01 : din4 = {32'b0, op42, 64'b0};
+                2'b10 : din4 = {32'b0, op42, 64'b0};
                 2'b11 : din4 = {       op42, 96'b0};
             endcase
         end else begin
