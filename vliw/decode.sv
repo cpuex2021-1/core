@@ -275,27 +275,27 @@ module decode(
 
 
 
-         if (rs32 == 0)begin
-            rs32data = 32'b0;
-        end else if (rs32 == dec_rd1[5:0]) begin
-            rs32data = alu_fwd1;
-        end else if (rs32 == dec_rd2[5:0]) begin
-            rs32data = alu_fwd2;
-        end else if (rs32 == dec_rd3[5:0]) begin
+         if (rs42 == 6'b0)begin
+            rs42data = 32'b0;
+        end else if (rs42 == dec_rd1[5:0]) begin
+            rs42data = alu_fwd1;
+        end else if (rs42 == dec_rd2[5:0]) begin
+            rs42data = alu_fwd2;
+        end else if (rs42 == dec_rd3[5:0]) begin
             //lw hazard
             dec_stall = 1;
-        end else if (rs32 == dec_rd4[5:0]) begin
+        end else if (rs42 == dec_rd4[5:0]) begin
             //lw hazard
             dec_stall = 1;
-        end else if (rs32 == wb_rd1[5:0]) begin
-            rs32data = wb_res1;
-        end else if (rs32 == wb_rd2[5:0]) begin
-            rs32data = wb_res2; 
-        end else if (rs32 == wb_rd3[5:0]) begin
-            rs32data = wb_memdata3;
-        end else if (rs32 == wb_rd4[5:0]) begin
-            rs32data = wb_memdata4;
-        end else rs32data = rs32data_reg;
+        end else if (rs42 == wb_rd1[5:0]) begin
+            rs42data = wb_res1;
+        end else if (rs42 == wb_rd2[5:0]) begin
+            rs42data = wb_res2; 
+        end else if (rs42 == wb_rd3[5:0]) begin
+            rs42data = wb_memdata3;
+        end else if (rs42 == wb_rd4[5:0]) begin
+            rs42data = wb_memdata4;
+        end else rs42data = rs42data_reg;
  
     end
     logic [31:0] n_op12,n_op22;
@@ -321,13 +321,11 @@ module decode(
             default: n_op22 = 32'b0;
         endcase
         unique case (op3)
-            3'b101 : n_op32 = immL3;
-            3'b110 : n_op32 = immS3;   
+            3'b110 : n_op32 = rs32data;   
             default: n_op32 = 32'b0;
         endcase
         unique case (op4)
-            3'b101 : n_op42 = immL4;
-            3'b110 : n_op42 = immS4;   
+            3'b110 : n_op42 = rs42data;   
             default: n_op42 = 32'b0;
         endcase
     end                           
