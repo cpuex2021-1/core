@@ -181,12 +181,16 @@ module dmem_ram(
     end
 
     // dram u1(dec_daddr, arrive, data_arrived);
+    logic hit3_now,hit4_now;
+    assign hit3_now = tag_array[index3] == tag3;
+    assign hit4_now = tag_array[index4] == tag4;
+    logic hit3_past, hit4_past;
     logic hit3,hit4;
-    assign hit3 = tag_array[index3] == tag3;
-    assign hit4 = tag_array[index4] == tag4;
+    assign hit3 = hit3_now || hit3_past;
+    assign hit4 = hit4_now || hit4_past;
     logic cache_stall3, cache_stall4;
-    assign cache_stall3 = use3 && hit3;
-    assign cache_stall4 = use4 && hit4;
+    assign cache_stall3 = use3 && ~hit3;
+    assign cache_stall4 = use4 && ~hit4;
 
     logic [31:0] cache_data3, cache_data4;
 
@@ -215,9 +219,9 @@ blk_mem_gen_0 cache(
     always_comb begin 
         we3 = 16'h0000;
         we4 = 16'h0000;
-        if(rd_state == 2'b11 && rd_dready && rd_valid) we3 = 16'hffff; // plus information for 3 or 4 from dram
-        else if(use3 && hit3) begin
-            case (offset3) 
+        if(rd_state == 2'b11 && rd_dready && rd_valid && ~hit3_now) we3 = 16'hffff; // plus information for 3 or 4 from dram
+        else if(use3 && hit3_now && dec_mwe3) begin
+            unique case (offset3) 
                 2'b00: we3 = 16'h000f;
                 2'b01: we3 = 16'h00f0;
                 2'b10: we3 = 16'h0f00;
@@ -225,9 +229,9 @@ blk_mem_gen_0 cache(
             endcase
         end
 
-        if(rd_state == 2'b11 && rd_dready && rd_valid) we4 = 16'hffff;
-        else if(use4 && hit4 ) begin
-            case (offset4) 
+        if(rd_state == 2'b11 && rd_dready && rd_valid && hit3_now && ~hit4_now) we4 = 16'hffff;
+        else if(use4 && hit4_now && dec_mwe4) begin
+            unique case (offset4) 
                 2'b00: we4 = 16'h000f;
                 2'b01: we4 = 16'h00f0;
                 2'b10: we4 = 16'h0f00;
@@ -235,8 +239,8 @@ blk_mem_gen_0 cache(
             endcase
         end
 
-        if(hit3) begin
-            case(offset3) 
+        if(hit3_now) begin
+            unique case(offset3) 
                 2'b00 : din3 = {96'b0, op32       };
                 2'b01 : din3 = {64'b0, op32, 32'b0};
                 2'b01 : din3 = {32'b0, op32, 64'b0};
@@ -245,8 +249,8 @@ blk_mem_gen_0 cache(
         end else begin
             din3 = rd_data;
         end
-        if(hit4) begin
-            case(offset4) 
+        if(hit4_now) begin
+            unique case(offset4) 
                 2'b00 : din4 = {96'b0, op42       };
                 2'b01 : din4 = {64'b0, op42, 32'b0};
                 2'b01 : din4 = {32'b0, op42, 64'b0};
@@ -256,25 +260,31 @@ blk_mem_gen_0 cache(
             din4 = rd_data;
         end
                     //wr_addr <= {tag_array[index3],index,4'b0000}; //16bytes on a cache line
-        case (offset3_reg)
-            2'b00: cache_data3 = dout3[31 :0];
-            2'b01: cache_data3 = dout3[63 :32];
-            2'b10: cache_data3 = dout3[95 :64];
-            2'b11: cache_data3 = dout3[127:96];
+       
+    end
+    //output of cache
+    always_comb begin 
+         case (offset3_reg)
+            2'b00: cache_data3 = hit3_reg ? dout3[31 :0]  : cache_hit_data3;
+            2'b01: cache_data3 = hit3_reg ? dout3[63 :32] : cache_hit_data3;
+            2'b10: cache_data3 = hit3_reg ? dout3[95 :64] : cache_hit_data3;
+            2'b11: cache_data3 = hit3_reg ? dout3[127:96] : cache_hit_data3;
         endcase
         case (offset4_reg)
-            2'b00: cache_data4 = dout4[31 :0];
-            2'b01: cache_data4 = dout4[63 :32];
-            2'b10: cache_data4 = dout4[95 :64];
-            2'b11: cache_data4 = dout4[127:96];
-        endcase       
-
-        
+            2'b00: cache_data4 = hit4_reg ? dout4[31 :0]  : cache_hit_data4;
+            2'b01: cache_data4 = hit4_reg ? dout4[63 :32] : cache_hit_data4;
+            2'b10: cache_data4 = hit4_reg ? dout4[95 :64] : cache_hit_data4;
+            2'b11: cache_data4 = hit4_reg ? dout4[127:96] : cache_hit_data4;
+        endcase
     end
     logic [10:0] tag;
     logic [11:0] index;
-    assign cache_stall = use3&&~hit3 || use4 && ~hit4;
+    assign cache_stall = use3&&~hit3_now&&~hit3_past|| use4 && ~hit4_now && ~hit4_past;
     logic [1:0] offset3_reg, offset4_reg;
+
+    logic [31:0] cache_hit_data3,cache_hit_data4;
+    logic hit3_reg, hit4_reg;
+
     always_ff @( posedge clk ) begin  
         if(rst) begin
             wr_state <= 2'b00;
@@ -289,11 +299,23 @@ blk_mem_gen_0 cache(
             offset4_reg <= 0;
             tag <= 0;
             index <= 0;
+            cache_hit_data3 <= 0;
+            cache_hit_data4 <= 0;
+            hit3_reg <= 0;
+            hit4_reg <= 0;
+            hit3_past<= 0;
+            hit4_past<= 0;
         end else begin
             offset3_reg <= offset3;
             offset4_reg <= offset4;
-            if(dmem_en3 && dec_mwe3 && hit3) dirty_array[index3] <= 1;
-            if(dmem_en4 && dec_mwe4 && hit4) dirty_array[index4] <= 1;
+            if(dmem_en3 && dec_mwe3 && hit3_now) dirty_array[index3] <= 1;
+            if(dmem_en4 && dec_mwe4 && hit4_now) dirty_array[index4] <= 1;
+            if(hit3_now) cache_hit_data3 <= cache_data3;
+            if(hit4_now) cache_hit_data4 <= cache_data4;
+            hit3_reg  <= hit3_now;
+            hit4_reg  <= hit4_now;
+            hit3_past <= cache_stall ?  hit3_past || hit3_now : 0;
+            hit4_past <= cache_stall ?  hit4_past || hit4_now : 0;
             //offset_reg <= daddr[1:0]; //これなんだっけ
             //wr_data <= {cache00[index],cache01[index],cache02[index],cache03[index]};
             //wr_addr <= {tag_array[index3],index,4'b0000}; //16bytes on a cache line
@@ -343,14 +365,14 @@ blk_mem_gen_0 cache(
                     if(dirty_array[index]) wr_state <= 2'b01;
                     rd_state <= 2'b01;
                 end
-            end else if ((~use3 || hit3) && use4 && ~hit4) begin
+            end else if ((~use3 || hit3 ) && use4 && ~hit4 ) begin
                 if(wr_state == 2'b00 && rd_state == 2'b00) begin
                     rd_addr <= {tag4, index4,4'b0000};
                     wr_data <= dout4;
                     wr_addr <= {tag_array[index4],index4,4'b0000}; //16bytes on a cache line
                     tag     <= tag4;
                     index   <= index4;
-                    if(dirty_array[index]) wr_state <= 2'b01;
+                    if(dirty_array[index] || dec_mwe3 && index3==index4 ) wr_state <= 2'b01;
                     rd_state <= 2'b01;
                 end
             end
