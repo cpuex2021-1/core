@@ -65,10 +65,10 @@ module ifetch(
                 end
                 // boot loaderは後で考える。
                 if (daddr3[29:25] == 5'b11110 & dec_mwe3) begin
-                    if(offset == 2'b00)mem[daddr3[13:0]][31:0] <= dec_op32;
-                    if(offset == 2'b01)mem[daddr3[13:0]][63:32] <= dec_op32;
-                    if(offset == 2'b10)mem[daddr3[13:0]][95:64] <= dec_op32;
-                    if(offset == 2'b11)mem[daddr3[13:0]][127:96] <= dec_op32;
+                    if(offset == 2'b00)mem[daddr3[15:2]][31:0] <= dec_op32;
+                    if(offset == 2'b01)mem[daddr3[15:2]][63:32] <= dec_op32;
+                    if(offset == 2'b10)mem[daddr3[15:2]][95:64] <= dec_op32;
+                    if(offset == 2'b11)mem[daddr3[15:2]][127:96] <= dec_op32;
                     
                 end
             end
