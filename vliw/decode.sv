@@ -5,7 +5,6 @@
 module decode(
         input  logic clk, rst,
         input  logic [127:0] inst,
-        input  logic [13:0] if_pc,
 
         output logic [31:0] dec_op11, dec_op12,
         output logic [31:0] dec_op21, dec_op22,
@@ -352,7 +351,7 @@ module decode(
     
 
     logic jumpr;
-    assign jumpr = funct1[2:1] == 2'b01 && op1 == 3'b111;
+    assign jumpr = {funct1[2],funct1[0]} == 2'b01 && op1 == 3'b111;
     
     //logic  lw_nstall; //
 
@@ -403,8 +402,8 @@ module decode(
                 //dec_imm <= op == 3'b110 ? immSB : immIL;
                 aluctl1 <= {op1, funct1};
                 aluctl2 <= {op2, funct2};
-                dec_rd1  <= {(op1[2]==1'b0 || op1==3'b100 || {funct1,op1} == 6'b010111) && n_nop1, rd1} ; //R LUI CALLCLS
-                dec_rd2  <= {(op2[2]==1'b0 || op1==3'b100) && n_nop2, rd2} ; 
+                dec_rd1  <= {(op1[2]==1'b0 || op1==3'b100 || {funct1,op1} == 6'b010101) && n_nop1, rd1} ; //R LUI CALLCLS
+                dec_rd2  <= {(op2[2]==1'b0 || op1==3'b100 ||  {funct2,op2} == 6'b010101) && n_nop2, rd2} ; 
                 dec_rd3  <= {op3==3'b101 , rd3};
                 dec_rd4  <= {op4==3'b101 , rd4};
                 dec_mre3 <= op3==3'b101;
@@ -414,10 +413,10 @@ module decode(
                 /*dec_alu <= ~op[2] || // R style
                             op == 3'b100 ||  //I
                             {funct,op} == 6'b010101;  //LUI やっぱこれだけ汚いね*/
-                beq  <= {op1,funct1} == 6'b000110;
-                bne  <= {op1,funct1} == 6'b001110;
-                blt  <= {op1,funct1} == 6'b010110;
-                bge  <= {op1,funct1} == 6'b011110;
+                beq  <= {funct1,op1} == 6'b000110;
+                bne  <= {funct1,op1} == 6'b001110;
+                blt  <= {funct1,op1} == 6'b010110;
+                bge  <= {funct1,op1} == 6'b011110;
                 dec_jumpr <= jumpr;
                 npc <= jumpr ? rs11data[13:0] : immPC;
                 daddr3 <= daddr3_[29:0];

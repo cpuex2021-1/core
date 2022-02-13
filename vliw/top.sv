@@ -48,15 +48,11 @@ module top(
     );
     assign pc_ = pc[13:0];
     wire [127:0] inst;
-    wire [6:0] aluctl;
     wire [13:0] pc;
     wire [13:0] npc;
     logic [13:0] if_pc;
     logic npc_enn;
     logic flush;
-
-    logic [6:0] dec_branch;
-    logic dec_jump;
 
     logic [31:0] dec_op11, dec_op12;
     logic [31:0] dec_op21, dec_op22;
@@ -93,10 +89,11 @@ module top(
     assign stall = uart_stall || cache_stall || alu_stall1 || alu_stall2;
 
     //
-    PC       program_counter(.clk, .rst, .npc, .stall(stall||dec_stall ), .pc, .npc_enn , .inst1(inst[31:0]));
-    imem_ram imem(.clk, .rst, .pc, .npc, .npc_enn, .inst,.if_pc, .dec_op32, .daddr3, .stall(stall || dec_stall), .dec_mwe3, .flush);
+    //PC       program_counter(.clk, .rst, .npc, .stall(stall||dec_stall ), .pc, .npc_enn , .inst1(inst[127:96]));
+    //imem_ram imem(.clk, .rst, .pc, .npc, .npc_enn, .inst,.if_pc, .dec_op32, .daddr3, .stall(stall || dec_stall), .dec_mwe3, .flush);
+    ifetch ife(.clk, .rst, .stall(stall||dec_stall), .flush, .npc, .npc_enn, .inst, .dec_op32, .daddr3, .dec_mwe3);
     //IF <-> Dec & RF 
-    decode decode(.clk, .rst, .inst,.if_pc, 
+    decode decode(.clk, .rst, .inst,
                     .dec_op11, .dec_op12, .dec_op21, .dec_op22, .dec_op31, .dec_op32, .dec_op41, .dec_op42,
                     .aluctl1, .aluctl2, 
                     .dec_rd1, .dec_rd2, .dec_rd3, .dec_rd4,
@@ -108,7 +105,7 @@ module top(
                     .wb_memdata3, .wb_memdata4,
                     .wb_rd1, .wb_rd2, .wb_rd3, .wb_rd4,
                     .stall, .flush,.dec_stall);
-    branchjump bj(.op11(dec_op11), .op12(dec_op12), .beq, .bne, .blt, .bge, .dec_jumpr,.npc_enn);
+    branchjump bj(.op11(dec_op11), .op12(dec_op12), .beq, .bne, .blt, .bge, .dec_jumpr,.npc_enn, .flush);
 
     // decode output ↓
     // Dec & RF <-> ALU + MA
