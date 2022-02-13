@@ -41,10 +41,10 @@ module decode(
     logic [5:0] rs21, rs22, rd2;
     logic [5:0] rs31, rs32, rd3;
     logic [5:0] rs41, rs42, rd4;
-    assign rs11 = inst1[31:26];
+    assign rs11 = {funct1,op1} == 6'b010101 ? rd1 : inst1[31:26];
     assign rs12 = inst1[11:6];
 
-    assign rs21 = inst2[31:26];
+    assign rs21 = {funct2,op2} == 6'b010101 ? rd2 : inst2[31:26];
     assign rs22 = inst2[11:6];
 
     assign rs31 = inst3[31:26];
