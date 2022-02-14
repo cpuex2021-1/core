@@ -117,23 +117,23 @@ module decode(
         rs42data = 0;
         if (rs11 == 0)begin
             rs11data = 32'b0;
-        end else if (rs11 == dec_rd1[5:0]) begin
+        end else if (rs11 == dec_rd1[5:0] && dec_rd1[6]) begin
             rs11data = alu_fwd1;
-        end else if (rs11 == dec_rd2[5:0]) begin
+        end else if (rs11 == dec_rd2[5:0] && dec_rd2[6]) begin
             rs11data = alu_fwd2;
-        end else if (rs11 == dec_rd3[5:0]) begin
+        end else if (rs11 == dec_rd3[5:0] && dec_rd3[6]) begin
             //lw hazard
             dec_stall = 1;
-        end else if (rs11 == dec_rd4[5:0]) begin
+        end else if (rs11 == dec_rd4[5:0] && dec_rd4[6]) begin
             //lw hazard
             dec_stall = 1;
-        end else if (rs11 == wb_rd1[5:0]) begin
+        end else if (rs11 == wb_rd1[5:0]  && wb_rd1[6] ) begin
             rs11data = wb_res1;
-        end else if (rs11 == wb_rd2[5:0]) begin
+        end else if (rs11 == wb_rd2[5:0]  && wb_rd2[6] ) begin
             rs11data = wb_res2; 
-        end else if (rs11 == wb_rd3[5:0]) begin
+        end else if (rs11 == wb_rd3[5:0]  && wb_rd3[6] ) begin
             rs11data = wb_memdata3;
-        end else if (rs11 == wb_rd4[5:0]) begin
+        end else if (rs11 == wb_rd4[5:0]  && wb_rd4[6] ) begin
             rs11data = wb_memdata4;
         end else begin
              rs11data = rs11data_reg;
@@ -141,90 +141,90 @@ module decode(
 
         if (rs12 == 0)begin
             rs12data = 32'b0;
-        end else if (rs12 == dec_rd1[5:0]) begin
-            rs12data = alu_fwd1;
-        end else if (rs12 == dec_rd2[5:0]) begin
-            rs12data = alu_fwd2;
-        end else if (rs12 == dec_rd3[5:0]) begin
+        end else if (rs12 == dec_rd1[5:0] && dec_rd1[6]) begin
+            rs12data = alu_fwd1;         
+        end else if (rs12 == dec_rd2[5:0] && dec_rd2[6]) begin
+            rs12data = alu_fwd2;         
+        end else if (rs12 == dec_rd3[5:0] && dec_rd3[6]) begin
+            //lw hazard                  
+            dec_stall = 1;               
+        end else if (rs12 == dec_rd4[5:0] && dec_rd4[6]) begin
             //lw hazard
             dec_stall = 1;
-        end else if (rs12 == dec_rd4[5:0]) begin
-            //lw hazard
-            dec_stall = 1;
-        end else if (rs12 == wb_rd1[5:0]) begin
-            rs12data = wb_res1;
-        end else if (rs12 == wb_rd2[5:0]) begin
-            rs12data = wb_res2; 
-        end else if (rs12 == wb_rd3[5:0]) begin
-            rs12data = wb_memdata3;
-        end else if (rs12 == wb_rd4[5:0]) begin
+        end else if (rs12 == wb_rd1[5:0] && wb_rd1[6]) begin
+            rs12data = wb_res1;         
+        end else if (rs12 == wb_rd2[5:0] && wb_rd2[6]) begin
+            rs12data = wb_res2;         
+        end else if (rs12 == wb_rd3[5:0] && wb_rd3[6]) begin
+            rs12data = wb_memdata3;     
+        end else if (rs12 == wb_rd4[5:0] && wb_rd4[6]) begin
             rs12data = wb_memdata4;
         end else rs12data = rs12data_reg;
         
         if (rs21 == 0)begin
             rs21data = 32'b0;
-        end else if (rs21 == dec_rd1[5:0]) begin
-            rs21data = alu_fwd1;
-        end else if (rs21 == dec_rd2[5:0]) begin
-            rs21data = alu_fwd2;
-        end else if (rs21 == dec_rd3[5:0]) begin
-            //lw hazard
-            dec_stall = 1;
-        end else if (rs21 == dec_rd4[5:0]) begin
-            //lw hazard
-            dec_stall = 1;
-        end else if (rs21 == wb_rd1[5:0]) begin
-            rs21data = wb_res1;
-        end else if (rs21 == wb_rd2[5:0]) begin
-            rs21data = wb_res2; 
-        end else if (rs21 == wb_rd3[5:0]) begin
-            rs21data = wb_memdata3;
-        end else if (rs21 == wb_rd4[5:0]) begin
+        end else if (rs21 == dec_rd1[5:0] && dec_rd1[6]) begin
+            rs21data = alu_fwd1;         
+        end else if (rs21 == dec_rd2[5:0] && dec_rd2[6]) begin
+            rs21data = alu_fwd2;         
+        end else if (rs21 == dec_rd3[5:0] && dec_rd3[6]) begin
+            //lw hazard                  
+            dec_stall = 1;               
+        end else if (rs21 == dec_rd4[5:0] && dec_rd4[6]) begin
+            //lw hazard                  
+            dec_stall = 1;               
+        end else if (rs21 == wb_rd1[5:0] && wb_rd1[6] ) begin
+            rs21data = wb_res1;                       
+        end else if (rs21 == wb_rd2[5:0] && wb_rd2[6] ) begin
+            rs21data = wb_res2;                       
+        end else if (rs21 == wb_rd3[5:0] && wb_rd3[6] ) begin
+            rs21data = wb_memdata3;                   
+        end else if (rs21 == wb_rd4[5:0] && wb_rd4[6] ) begin
             rs21data = wb_memdata4;
         end else rs21data = rs21data_reg;
         
 
         if (rs22 == 0)begin
             rs22data = 32'b0;
-        end else if (rs22 == dec_rd1[5:0]) begin
-            rs22data = alu_fwd1;
-        end else if (rs22 == dec_rd2[5:0]) begin
-            rs22data = alu_fwd2;
-        end else if (rs22 == dec_rd3[5:0]) begin
-            //lw hazard
-            dec_stall = 1;
-        end else if (rs22 == dec_rd4[5:0]) begin
-            //lw hazard
-            dec_stall = 1;
-        end else if (rs22 == wb_rd1[5:0]) begin
-            rs22data = wb_res1;
-        end else if (rs22 == wb_rd2[5:0]) begin
-            rs22data = wb_res2; 
-        end else if (rs22 == wb_rd3[5:0]) begin
-            rs22data = wb_memdata3;
-        end else if (rs22 == wb_rd4[5:0]) begin
+        end else if (rs22 == dec_rd1[5:0] && dec_rd1[6]) begin
+            rs22data = alu_fwd1;         
+        end else if (rs22 == dec_rd2[5:0] && dec_rd2[6]) begin
+            rs22data = alu_fwd2;         
+        end else if (rs22 == dec_rd3[5:0] && dec_rd3[6]) begin
+            //lw hazard                  
+            dec_stall = 1;               
+        end else if (rs22 == dec_rd4[5:0] && dec_rd4[6]) begin
+            //lw hazard                  
+            dec_stall = 1;               
+        end else if (rs22 == wb_rd1[5:0] && wb_rd1[6] ) begin
+            rs22data = wb_res1;          
+        end else if (rs22 == wb_rd2[5:0] && wb_rd2[6] ) begin
+            rs22data = wb_res2;          
+        end else if (rs22 == wb_rd3[5:0] && wb_rd3[6])  begin
+            rs22data = wb_memdata3;      
+        end else if (rs22 == wb_rd4[5:0] && wb_rd4[6] ) begin
             rs22data = wb_memdata4;
         end else rs22data = rs22data_reg;
 
         if (rs31 == 0)begin
             rs31data = 32'b0;
-        end else if (rs31 == dec_rd1[5:0]) begin
-            rs31data = alu_fwd1;
-        end else if (rs31 == dec_rd2[5:0]) begin
-            rs31data = alu_fwd2;
-        end else if (rs31 == dec_rd3[5:0]) begin
+        end else if (rs31 == dec_rd1[5:0]&& dec_rd1[6]) begin
+            rs31data = alu_fwd1;         
+        end else if (rs31 == dec_rd2[5:0]&& dec_rd2[6]) begin
+            rs31data = alu_fwd2;         
+        end else if (rs31 == dec_rd3[5:0]&& dec_rd3[6]) begin
+            //lw hazard                  
+            dec_stall = 1;               
+        end else if (rs31 == dec_rd4[5:0]&& dec_rd4[6]) begin
             //lw hazard
             dec_stall = 1;
-        end else if (rs31 == dec_rd4[5:0]) begin
-            //lw hazard
-            dec_stall = 1;
-        end else if (rs31 == wb_rd1[5:0]) begin
-            rs31data = wb_res1;
-        end else if (rs31 == wb_rd2[5:0]) begin
-            rs31data = wb_res2; 
-        end else if (rs31 == wb_rd3[5:0]) begin
-            rs31data = wb_memdata3;
-        end else if (rs31 == wb_rd4[5:0]) begin
+        end else if (rs31 == wb_rd1[5:0] && wb_rd1[6]) begin
+            rs31data = wb_res1;         
+        end else if (rs31 == wb_rd2[5:0] && wb_rd2[6]) begin
+            rs31data = wb_res2;         
+        end else if (rs31 == wb_rd3[5:0] && wb_rd3[6]) begin
+            rs31data = wb_memdata3;     
+        end else if (rs31 == wb_rd4[5:0] && wb_rd4[6]) begin
             rs31data = wb_memdata4;
         end else rs31data = rs31data_reg;
 
@@ -232,44 +232,45 @@ module decode(
 
          if (rs32 == 0)begin
             rs32data = 32'b0;
-        end else if (rs32 == dec_rd1[5:0]) begin
-            rs32data = alu_fwd1;
-        end else if (rs32 == dec_rd2[5:0]) begin
-            rs32data = alu_fwd2;
-        end else if (rs32 == dec_rd3[5:0]) begin
+        end else if (rs32 == dec_rd1[5:0]&& dec_rd1[6]) begin
+            rs32data = alu_fwd1;         
+        end else if (rs32 == dec_rd2[5:0]&& dec_rd2[6]) begin
+            rs32data = alu_fwd2;         
+        end else if (rs32 == dec_rd3[5:0]&& dec_rd3[6]) begin
+            //lw hazard                  
+            dec_stall = 1;               
+        end else if (rs32 == dec_rd4[5:0]&& dec_rd4[6]) begin
             //lw hazard
             dec_stall = 1;
-        end else if (rs32 == dec_rd4[5:0]) begin
-            //lw hazard
-            dec_stall = 1;
-        end else if (rs32 == wb_rd1[5:0]) begin
-            rs32data = wb_res1;
-        end else if (rs32 == wb_rd2[5:0]) begin
-            rs32data = wb_res2; 
-        end else if (rs32 == wb_rd3[5:0]) begin
-            rs32data = wb_memdata3;
-        end else if (rs32 == wb_rd4[5:0]) begin
+        end else if (rs32 == wb_rd1[5:0] && wb_rd1[6]) begin
+            rs32data = wb_res1;         
+        end else if (rs32 == wb_rd2[5:0] && wb_rd2[6]) begin
+            rs32data = wb_res2;         
+        end else if (rs32 == wb_rd3[5:0] && wb_rd3[6]) begin
+            rs32data = wb_memdata3;     
+        end else if (rs32 == wb_rd4[5:0] && wb_rd4[6]) begin
             rs32data = wb_memdata4;
         end else rs32data = rs32data_reg;
+
         if (rs41 == 0)begin
             rs41data = 32'b0;
-        end else if (rs41 == dec_rd1[5:0]) begin
-            rs41data = alu_fwd1;
-        end else if (rs41 == dec_rd2[5:0]) begin
-            rs41data = alu_fwd2;
-        end else if (rs41 == dec_rd3[5:0]) begin
+        end else if (rs41 == dec_rd1[5:0]&& dec_rd1[6]) begin
+            rs41data = alu_fwd1;         
+        end else if (rs41 == dec_rd2[5:0]&& dec_rd2[6]) begin
+            rs41data = alu_fwd2;         
+        end else if (rs41 == dec_rd3[5:0]&& dec_rd3[6]) begin
+            //lw hazard                  
+            dec_stall = 1;               
+        end else if (rs41 == dec_rd4[5:0]&& dec_rd4[6]) begin
             //lw hazard
             dec_stall = 1;
-        end else if (rs41 == dec_rd4[5:0]) begin
-            //lw hazard
-            dec_stall = 1;
-        end else if (rs41 == wb_rd1[5:0]) begin
-            rs41data = wb_res1;
-        end else if (rs41 == wb_rd2[5:0]) begin
-            rs41data = wb_res2; 
-        end else if (rs41 == wb_rd3[5:0]) begin
-            rs41data = wb_memdata3;
-        end else if (rs41 == wb_rd4[5:0]) begin
+        end else if (rs41 == wb_rd1[5:0] && wb_rd1[6]) begin
+            rs41data = wb_res1;         
+        end else if (rs41 == wb_rd2[5:0] && wb_rd2[6]) begin
+            rs41data = wb_res2;         
+        end else if (rs41 == wb_rd3[5:0] && wb_rd3[6]) begin
+            rs41data = wb_memdata3;     
+        end else if (rs41 == wb_rd4[5:0] && wb_rd4[6]) begin
             rs41data = wb_memdata4;
         end else rs41data = rs41data_reg;
 
@@ -277,23 +278,23 @@ module decode(
 
          if (rs42 == 6'b0)begin
             rs42data = 32'b0;
-        end else if (rs42 == dec_rd1[5:0]) begin
-            rs42data = alu_fwd1;
-        end else if (rs42 == dec_rd2[5:0]) begin
-            rs42data = alu_fwd2;
-        end else if (rs42 == dec_rd3[5:0]) begin
+        end else if (rs42 == dec_rd1[5:0]&& dec_rd1[6]) begin
+            rs42data = alu_fwd1;         
+        end else if (rs42 == dec_rd2[5:0]&& dec_rd2[6]) begin
+            rs42data = alu_fwd2;         
+        end else if (rs42 == dec_rd3[5:0]&& dec_rd3[6]) begin
+            //lw hazard                  
+            dec_stall = 1;               
+        end else if (rs42 == dec_rd4[5:0]&& dec_rd4[6]) begin
             //lw hazard
             dec_stall = 1;
-        end else if (rs42 == dec_rd4[5:0]) begin
-            //lw hazard
-            dec_stall = 1;
-        end else if (rs42 == wb_rd1[5:0]) begin
-            rs42data = wb_res1;
-        end else if (rs42 == wb_rd2[5:0]) begin
-            rs42data = wb_res2; 
-        end else if (rs42 == wb_rd3[5:0]) begin
-            rs42data = wb_memdata3;
-        end else if (rs42 == wb_rd4[5:0]) begin
+        end else if (rs42 == wb_rd1[5:0] && wb_rd1[6]) begin
+            rs42data = wb_res1;         
+        end else if (rs42 == wb_rd2[5:0] && wb_rd2[6]) begin
+            rs42data = wb_res2;         
+        end else if (rs42 == wb_rd3[5:0] && wb_rd3[6]) begin
+            rs42data = wb_memdata3;     
+        end else if (rs42 == wb_rd4[5:0] && wb_rd4[6]) begin
             rs42data = wb_memdata4;
         end else rs42data = rs42data_reg;
  
@@ -416,7 +417,7 @@ module decode(
                 blt  <= {funct1,op1} == 6'b010110;
                 bge  <= {funct1,op1} == 6'b011110;
                 dec_jumpr <= jumpr;
-                npc <= jumpr ? rs11data[13:0] : immPC;
+                npc <= jumpr ? clsaddr : immPC;
                 daddr3 <= daddr3_[29:0];
                 daddr4 <= daddr4_[29:0];
             end
