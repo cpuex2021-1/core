@@ -244,7 +244,7 @@ blk_mem_gen_0 cache(
         we3 = 16'h0000;
         we4 = 16'h0000;
         if(daddr3 == daddr4 && dec_mwe3 && dec_mwe4) we3 = 0;
-        else if(rd_state == 2'b11 && rd_dready && rd_valid && ~hit3_now) we3 = 16'hffff; // plus information for 3 or 4 from dram
+        else if(rd_state == 2'b11 && rd_dready && rd_valid && use3 && ~hit3_now) we3 = 16'hffff; // plus information for 3 or 4 from dram
         else if(use3 && hit3_now && dec_mwe3) begin
             unique case (offset3) 
                 2'b00: we3 = 16'h000f;
@@ -254,7 +254,7 @@ blk_mem_gen_0 cache(
             endcase
         end
 
-        if(rd_state == 2'b11 && rd_dready && rd_valid && hit3_now && ~hit4_now) we4 = 16'hffff;
+        if(rd_state == 2'b11 && rd_dready && rd_valid && use4 && (~use3 || hit3_now) && ~hit4_now) we4 = 16'hffff;
         else if(use4 && hit4_now && dec_mwe4) begin
             unique case (offset4) 
                 2'b00: we4 = 16'h000f;
@@ -388,7 +388,8 @@ blk_mem_gen_0 cache(
                     rd_addr <= {tag3, index3,4'b0000};
                     tag <= tag3;
                     index <= index3;
-                    if(dirty_array[0][index3] || dirty_array[1][index3]) wr_state <= 2'b01;
+                    //if(dirty_array[0][index3] || dirty_array[1][index3]) wr_state <= 2'b01;
+                    wr_state <= 2'b01;
                     rd_state <= 2'b01;
                 end
             end else if ((~use3 || hit3 ) && use4 && ~hit4 ) begin
@@ -398,7 +399,8 @@ blk_mem_gen_0 cache(
                     wr_addr <= {tag_array[index4],index4,4'b0000}; //16bytes on a cache line
                     tag     <= tag4;
                     index   <= index4;
-                    if(dirty_array[0][index4] || dirty_array[1][index4] || dec_mwe3 && index3==index4 ) wr_state <= 2'b01;
+                    //if(dirty_array[0][index4] || dirty_array[1][index4] || dec_mwe3 && index3==index4 ) wr_state <= 2'b01;
+                    wr_state <= 2'b01;
                     rd_state <= 2'b01;
                 end
             end
