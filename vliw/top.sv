@@ -105,7 +105,7 @@ module top(
                     .wb_memdata3, .wb_memdata4,
                     .wb_rd1, .wb_rd2, .wb_rd3, .wb_rd4,
                     .stall, .flush,.dec_stall);
-    branchjump bj(.op11(dec_op11), .op12(dec_op12), .beq, .bne, .blt, .bge, .dec_jumpr,.npc_enn, .flush);
+    branchjump bj(.op11(dec_op11), .op12(dec_op12), .beq, .bne, .blt, .bge, .dec_jumpr,.npc_enn, .flush, .stall(alu_stall2 || uart_stall || cache_stall));
 
     // decode output ↓
     // Dec & RF <-> ALU + MA
