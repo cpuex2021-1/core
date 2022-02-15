@@ -14,7 +14,7 @@ module ifetch(
     int i=0;
     initial begin
         for(i=0; i<16359; i=i+1)mem[i] = 0;
-        $readmemh("inst.mem", mem,0, 11000);
+        $readmemh("inst.mem", mem,0, 12000);
         //$readmemh("loader.mem", mem, 16346, 16383); //check pc
     end
 
@@ -28,7 +28,7 @@ module ifetch(
     assign op = inst1[2:0]; // [2:0]
     assign funct = inst1[5:3]; //[5:3]
     logic push;
-    assign push = op == 3'b111 && funct[2:1] == 2'b01;
+    assign push = op == 3'b111 && funct[2:1] == 2'b01&& ~npc_enn;
     logic [13:0] ra;
     logic pop;
     assign pop = inst1[5:0] == 6'b100111 && ~npc_enn;
