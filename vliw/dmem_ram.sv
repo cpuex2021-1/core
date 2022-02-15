@@ -309,6 +309,7 @@ blk_mem_gen_0 cache(
 
     logic [31:0] cache_hit_data3,cache_hit_data4;
     logic hit3_reg, hit4_reg;
+    logic wr_which;
 
     always_ff @( posedge clk ) begin  
         if(rst) begin
@@ -318,6 +319,7 @@ blk_mem_gen_0 cache(
             rd_addr <= 0;
             wr_valid <= 0;
             wr_data <= 0;
+            wr_which <= 0;
             rd_avalid <= 0;
             rd_dready <= 0;
             offset3_reg <= 0;
@@ -349,6 +351,7 @@ blk_mem_gen_0 cache(
             // 書き込み　読み込みは並行して行われる感じ
             if(wr_state == 2'b01)begin
                wr_valid <= 1;
+               wr_data <= wr_which ? dout4 : dout3;
                wr_state <= 2'b10;
              end 
             if(wr_state == 2'b10 && wr_valid && wr_ready) begin
@@ -384,7 +387,8 @@ blk_mem_gen_0 cache(
                 //ライトバックぐらいにはしたいね
                 if(wr_state == 2'b00 && rd_state == 2'b00) begin
                     wr_addr <= {tag_array[index3],index3,4'b0000}; //16bytes on a cache line
-                    wr_data <= dout3;
+                    //wr_data <= dout3;
+                    wr_which <= 0;
                     rd_addr <= {tag3, index3,4'b0000};
                     tag <= tag3;
                     index <= index3;
@@ -395,7 +399,8 @@ blk_mem_gen_0 cache(
             end else if ((~use3 || hit3 ) && use4 && ~hit4 ) begin
                 if(wr_state == 2'b00 && rd_state == 2'b00) begin
                     rd_addr <= {tag4, index4,4'b0000};
-                    wr_data <= dout4;
+                    //wr_data <= dout4;
+                    wr_which <= 1;
                     wr_addr <= {tag_array[index4],index4,4'b0000}; //16bytes on a cache line
                     tag     <= tag4;
                     index   <= index4;

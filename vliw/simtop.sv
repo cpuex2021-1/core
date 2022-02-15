@@ -27,11 +27,11 @@ module simtop();
     always  begin
         clk = 1'b0;
         #5 clk = 1'b1;
-        #5 count = count+1;
+        #5 if(~dut.topoftop_0.inst.to.stall)count  = count+1;
     end
 
         logic [7:0] data;
-/*logic [7:0] contest_bin [0:1299] = {
+logic [7:0] contest_bin [0:1299] = {
   8'h00, 8'h00, 8'h8c, 8'hc2, 8'h00, 8'h00, 8'h0c, 8'h42, 8'h00, 8'h00, 8'ha0, 8'hc1,
   8'h00, 8'h00, 8'ha0, 8'h41, 8'h00, 8'h00, 8'hf0, 8'h41, 8'h00, 8'h00, 8'h80, 8'h3f,
   8'h00, 8'h00, 8'h48, 8'h42, 8'h00, 8'h00, 8'h48, 8'h42, 8'h00, 8'h00, 8'h7f, 8'h43,
@@ -141,7 +141,7 @@ module simtop();
   8'h63, 8'h00, 8'h00, 8'h00, 8'h09, 8'h00, 8'h00, 8'h00, 8'h08, 8'h00, 8'h00, 8'h00,
   8'h07, 8'h00, 8'h00, 8'h00, 8'h05, 8'h00, 8'h00, 8'h00, 8'hff, 8'hff, 8'hff, 8'hff,
   8'hff, 8'hff, 8'hff, 8'hff
-};*/
+};
 logic [7:0] send_bin[0:167] = {
   8'h15, 8'h00, 8'h40, 8'h00, 8'h84, 8'h0a, 8'h40, 8'h08, 8'h04, 8'h0c, 8'hc0, 8'h01,
   8'h04, 8'h08, 8'h00, 8'h02, 8'h84, 8'h02, 8'h40, 8'h02, 8'h04, 8'h14, 8'h80, 8'h01,
@@ -165,7 +165,7 @@ logic [7:0] send_bin[0:167] = {
         rst = 1'b0;
         
         #13 rst = 1'b1;  
-        count = -33;      
+        count = -50;      
         //repeat(30) 
         #500;
         //uart(12);
@@ -192,14 +192,14 @@ logic [7:0] send_bin[0:167] = {
         /*for(i=0; i<1300; i=i+1) begin
             uart(contest_bin[i]);
         end*/
-        uart(168);
-        uart(0);
-        uart(0);
-        uart(0);
+        //uart(168);
+        //uart(1);
+        //uart(2);
+        //uart(3);
         
         
-        for(i=0; i<168; i=i+1) begin
-            uart(send_bin[i]);
+        for(i=0; i<1300; i=i+1) begin
+            uart(contest_bin[i]);
         end
         //end
                 
