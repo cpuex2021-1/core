@@ -192,10 +192,10 @@ logic [7:0] send_bin[0:167] = {
         /*for(i=0; i<1300; i=i+1) begin
             uart(contest_bin[i]);
         end*/
-        //uart(168);
-        //uart(1);
-        //uart(2);
-        //uart(3);
+        uart(32);
+        uart(0);
+        uart(0);
+        uart(0);
         
         
         for(i=0; i<1300; i=i+1) begin

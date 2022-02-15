@@ -13,9 +13,9 @@ module ifetch(
     (*ram_style = "block"*) logic [127:0] mem [16383:0];
     int i=0;
     initial begin
-        for(i=0; i<16359; i=i+1)mem[i] = 0;
-        $readmemh("inst.mem", mem,0, 12000);
-        //$readmemh("loader.mem", mem, 16346, 16383); //check pc
+        for(i=0; i<16384; i=i+1)mem[i] = 0;
+        //$readmemh("inst.mem", mem,0, 12000);
+        $readmemh("loader.mem", mem, 16366, 16383); //check pc
     end
 
     logic [13:0] pc;
@@ -45,7 +45,7 @@ module ifetch(
     always_ff @( posedge clk ) begin 
         if(rst ) begin
             inst <= 0;
-            pc <= 0;
+            pc <= 16365;
         /*end else if (flush)begin
             inst <= 0;*/
         end else begin
