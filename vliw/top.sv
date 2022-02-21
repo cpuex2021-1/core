@@ -90,7 +90,7 @@ module top(
     //
     //PC       program_counter(.clk, .rst, .npc, .stall(stall||dec_stall ), .pc, .npc_enn , .inst1(inst[127:96]));
     //imem_ram imem(.clk, .rst, .pc, .npc, .npc_enn, .inst,.if_pc, .dec_op32, .daddr3, .stall(stall || dec_stall), .dec_mwe3, .flush);
-    ifetch ife(.clk, .rst, .stall(stall||dec_stall), .flush, .npc, .npc_enn, .inst, .dec_op32, .daddr3, .dec_mwe3, .pc_led(pc_));
+    ifetch ife(.clk, .rst, .stall,.dec_stall, .flush, .npc, .npc_enn, .inst, .dec_op32, .daddr3, .dec_mwe3, .pc_led(pc_));
     //IF <-> Dec & RF 
     decode decode(.clk, .rst, .inst,
                     .dec_op11, .dec_op12, .dec_op21, .dec_op22, .dec_op31, .dec_op32, .dec_op41, .dec_op42,

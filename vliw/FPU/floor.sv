@@ -14,11 +14,11 @@ module floor(
     logic unsigned [7:0] ep1;
     assign ep1 = e + 1;
     logic zero;
-    assign zero = e < 8'd127;
+    assign zero = e < $unsigned(8'd127);
     logic big;
-    assign big = e > 8'd 149;
+    assign big = e > $unsigned(8'd 149);
     logic unsigned [7:0] diff;
-    assign diff  = 8'd149 - e;
+    assign diff  = $unsigned(8'd149) - e;
     logic [23:0] newmneg_;
     logic [22:0] newmpos;
     logic up;
@@ -54,15 +54,15 @@ module floor(
         endcase
         newmneg_[23] = 0;
         case (diff)
-            8'd0:  begin newmneg_[22:0] = { 1'b0,m[22:1]};   up =  |m[0 :0]; ovf = &m[22:1] ;end
-            8'd1:  begin newmneg_[22:0] = { 2'b0,m[22:2]};   up =  |m[1 :0]; ovf = &m[22:2] ;end
-            8'd2:  begin newmneg_[22:0] = { 3'b0,m[22:3]};   up =  |m[2 :0]; ovf = &m[22:3] ;end
-            8'd3:  begin newmneg_[22:0] = { 4'b0,m[22:4]};   up =  |m[3 :0]; ovf = &m[22:4] ;end
-            8'd4:  begin newmneg_[22:0] = { 5'b0,m[22:5]};   up =  |m[4 :0]; ovf = &m[22:5] ;end
-            8'd5:  begin newmneg_[22:0] = { 6'b0,m[22:6]};   up =  |m[5 :0]; ovf = &m[22:6] ;end
-            8'd6:  begin newmneg_[22:0] = { 7'b0,m[22:7]};   up =  |m[6 :0]; ovf = &m[22:7] ;end
-            8'd7:  begin newmneg_[22:0] = { 8'b0,m[22:8]};   up =  |m[7 :0]; ovf = &m[22:8] ;end
-            8'd8:  begin newmneg_[22:0] = { 9'b0,m[22:9]};   up =  |m[8 :0]; ovf = &m[22:9] ;end
+            8'd0:  begin newmneg_[22:0] = { 1'b0,m[22:1] };   up =  |m[0 :0]; ovf = &m[22:1] ;end
+            8'd1:  begin newmneg_[22:0] = { 2'b0,m[22:2] };   up =  |m[1 :0]; ovf = &m[22:2] ;end
+            8'd2:  begin newmneg_[22:0] = { 3'b0,m[22:3] };   up =  |m[2 :0]; ovf = &m[22:3] ;end
+            8'd3:  begin newmneg_[22:0] = { 4'b0,m[22:4] };   up =  |m[3 :0]; ovf = &m[22:4] ;end
+            8'd4:  begin newmneg_[22:0] = { 5'b0,m[22:5] };   up =  |m[4 :0]; ovf = &m[22:5] ;end
+            8'd5:  begin newmneg_[22:0] = { 6'b0,m[22:6] };   up =  |m[5 :0]; ovf = &m[22:6] ;end
+            8'd6:  begin newmneg_[22:0] = { 7'b0,m[22:7] };   up =  |m[6 :0]; ovf = &m[22:7] ;end
+            8'd7:  begin newmneg_[22:0] = { 8'b0,m[22:8] };   up =  |m[7 :0]; ovf = &m[22:8] ;end
+            8'd8:  begin newmneg_[22:0] = { 9'b0,m[22:9] };   up =  |m[8 :0]; ovf = &m[22:9] ;end
             8'd9:  begin newmneg_[22:0] = {10'b0,m[22:10]};  up =  |m[9 :0]; ovf = &m[22:10]; end
             8'd10: begin newmneg_[22:0] = {11'b0,m[22:11]};  up =  |m[10:0]; ovf = &m[22:11]; end
             8'd11: begin newmneg_[22:0] = {12'b0,m[22:12]};  up =  |m[11:0]; ovf = &m[22:12]; end

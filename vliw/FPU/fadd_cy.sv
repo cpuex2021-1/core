@@ -38,7 +38,33 @@ module fadd_cy (input wire [31:0] x1,
    
   // wire [25:0] ser_ = { << {myd_[25:0]}};
    //wire [25:0] seb_ = (ser_ & (-ser_)); //あってるのか？
-/*  wire [4:0] se_;
+   wire [4:0] se_= myd_[25] ? 0 :
+                   myd_[24] ? 1 :
+                   myd_[23] ? 2 :
+                   myd_[22] ? 3 :
+                   myd_[21] ? 4 :
+                   myd_[20] ? 5 :
+                   myd_[19] ? 6 :
+                   myd_[18] ? 7 :
+                   myd_[17] ? 8 :
+                   myd_[16] ? 9 :
+                   myd_[15] ? 10 :
+                   myd_[14] ? 11 :
+                   myd_[13] ? 12 :
+                   myd_[12] ? 13 :
+                   myd_[11] ? 14 :
+                   myd_[10] ? 15 :
+                   myd_[9] ? 16 :
+                   myd_[8] ? 17 :
+                   myd_[7] ? 18 :
+                   myd_[6] ? 19 :
+                   myd_[5] ? 20 :
+                   myd_[4] ? 21 :
+                   myd_[3] ? 22 :
+                   myd_[2] ? 23 :
+                   myd_[1] ? 24 :
+                   myd_[0] ? 25 : 26;
+ /*  wire [4:0] se_;
    assign se_[4] = (seb_ == 0) ? 1'b1 :  |(seb_[25:16]);
    assign se_[3] = (seb_ == 0) ? 1'b1 :  |(seb_ & 26'h300_FF00);
    assign se_[2] = (seb_ == 0) ? 1'b0 :  |(seb_ & 26'h0_F0_F0F0);
@@ -46,7 +72,7 @@ module fadd_cy (input wire [31:0] x1,
    assign se_[0] = (seb_ == 0) ? 1'b0 :  |(seb_ & 26'h2AA_AAAA);*/
    reg [7:0] eyd;
    reg [26:0] myd;
-   //reg [4:0] se;
+   reg [4:0] se;
    reg [25:0] seb;
    reg [25:0] ser;
    reg stck;
@@ -61,7 +87,7 @@ module fadd_cy (input wire [31:0] x1,
       if (rst) begin
       	   eyd <= 0;
 	       myd <= 0;
-	       //se <= 0;
+	       se <= 0;
 	       stck <= 0;
 	       s1 <= 0;
 	       s2 <= 0;
@@ -73,7 +99,7 @@ module fadd_cy (input wire [31:0] x1,
       end else begin
 	       eyd <= eyd_;
 	       myd <= myd_;
-	       //se <= se_;
+	       se <= se_;
 	       stck <= stck_;
 	       s1 <= s1_;
 	       s2 <= s2_;
@@ -84,114 +110,42 @@ module fadd_cy (input wire [31:0] x1,
 	       m2 <= m2_;
       end
    end
-    wire [4:0] se= myd[25] ? 0 :
-                   myd[24] ? 1 :
-                   myd[23] ? 2 :
-                   myd[22] ? 3 :
-                   myd[21] ? 4 :
-                   myd[20] ? 5 :
-                   myd[19] ? 6 :
-                   myd[18] ? 7 :
-                   myd[17] ? 8 :
-                   myd[16] ? 9 :
-                   myd[15] ? 10 :
-                   myd[14] ? 11 :
-                   myd[13] ? 12 :
-                   myd[12] ? 13 :
-                   myd[11] ? 14 :
-                   myd[10] ? 15 :
-                   myd[9] ? 16 :
-                   myd[8] ? 17 :
-                   myd[7] ? 18 :
-                   myd[6] ? 19 :
-                   myd[5] ? 20 :
-                   myd[4] ? 21 :
-                   myd[3] ? 22 :
-                   myd[2] ? 23 :
-                   myd[1] ? 24 :
-                   myd[0] ? 25 : 26;
-      /*logic [4:0] se;
-      always_comb begin 
-         casez(myd[25:0])
-            26'b1?????????????????????????: se = 0;
-            26'b01????????????????????????: se = 1;
-            26'b001???????????????????????: se = 2;
-            26'b0001??????????????????????: se = 3;
-            26'b00001?????????????????????: se = 4;
-            26'b000001????????????????????: se = 5;
-            26'b0000001???????????????????: se = 6;
-            26'b00000001??????????????????: se = 7;
-            26'b000000001?????????????????: se = 8;
-            26'b0000000001????????????????: se = 9;
-            26'b00000000001???????????????: se = 10;
-            26'b000000000001??????????????: se = 11;
-            26'b0000000000001?????????????: se = 12;
-            26'b00000000000001????????????: se = 13;
-            26'b000000000000001???????????: se = 14;
-            26'b0000000000000001??????????: se = 15;
-            26'b00000000000000001?????????: se = 16;
-            26'b000000000000000001????????: se = 17;
-            26'b0000000000000000001???????: se = 18;
-            26'b00000000000000000001??????: se = 19;
-            26'b000000000000000000001?????: se = 20;
-            26'b0000000000000000000001????: se = 21;
-            26'b00000000000000000000001???: se = 22;
-            26'b000000000000000000000001??: se = 23;
-            26'b0000000000000000000000001?: se = 24;
-            26'b00000000000000000000000001: se = 25;
-            default : se = 26;
-         endcase
-      end*/
-
    
    wire [8:0] eyf= {1'b0,eyd} - {4'b0,se};
-
    
-   reg [26:0] myf;// = ($signed(eyf) > 0) ? myd<<se : myd << (eyd[4:0]-1);
-   reg [7:0]  eyr ;//= ($signed(eyf) > 0) ? eyf[7:0] : 8'b0;
-   reg stck3;
-   reg s1_3, s2_3;
-   reg ss3;
-   always_ff @( posedge clk ) begin 
-      if(rst)begin
-         
-      end else begin
-         myf <= ($signed(eyf) > 0) ? myd<<se : myd << (eyd[4:0]-1);
-         eyr <= ($signed(eyf) > 0) ? eyf[7:0] : 8'b0;
-         stck3 <= stck;
-         s1_3 <= s1;
-         s2_3 <= s2;
-         ss3 <= ss;
-      end
-
-   end
+   wire [26:0] myf = ($signed(eyf) > 0) ? myd<<se : myd << (eyd[4:0]-1);
+   wire [7:0]  eyr = ($signed(eyf) > 0) ? eyf[7:0] : 8'b0;
    
-   wire [24:0] myr = ((myf[1] ==1 && myf[0] == 0 && stck3==0 && myf[2] ==1) || (myf[1] ==1&&myf[0] ==0 && s1_3==s2_3 && stck3==1) || (myf[1] == 1 && myf[0] ==1)) ? myf[26:2] + 25'b1 : myf[26:2]; 
+   wire [24:0] myr = ((myf[1] ==1 && myf[0] == 0 && stck==0 && myf[2] ==1) || (myf[1] ==1&&myf[0] ==0 && s1==s2 && stck==1) || (myf[1] == 1 && myf[0] ==1)) ? myf[26:2] + 25'b1 : myf[26:2]; 
    
    wire [7:0] eyri = eyr + 8'b1;
    wire [7:0] ey = (myr[24]==1) ? eyri : (|(myr[23:0]) ? eyr : 0);
    wire [22:0] my = (myr[24]==1) ? 23'b0 : (|(myr[23:0]) ? myr[22:0] : 23'b0);
    
-   wire sy =  ss3;
+   wire sy = (ey==0 && my==0) ? s1 && s2 : ss;
    
-   //wire nzm1 = |(m1[22:0]);
-   //wire nzm2 = |(m2[22:0]);
+   wire nzm1 = |(m1[22:0]);
+   wire nzm2 = |(m2[22:0]);
    wire [31:0] 			  y_next;
-   //wire e1max,e2max;
-   //assign e1max = e1==255;
-   //assign e2max = e2==255;
+   wire e1max,e2max;
+   assign e1max = e1==255;
+   assign e2max = e2==255;
    //wire 			  ovf_next;
-   //assign y_next =    {sy,ey,my};
-   assign y =    {sy,ey,my};
+   assign y_next =   (e1max && ~e2max)           ? {s1, 8'd255, nzm1, m1[21:0]}
+              : (e2max && ~e1max)         ? {s2, 8'd255, nzm2,m2[21:0]} 
+              : (e2max&&e1max&& nzm1)     ? {s1, 8'd255, 1'b1, m1[21:0]}
+              : (e1max&& e2max&& nzm2)    ? {s2,8'd255,1'b1,m2[21:0]}
+              : (e1max&& e2max&& s1==s2) ? {s1, 8'd255, 23'b0}
+              : (e1max&& e2max)            ? {1'b1, 8'd255, 1'b1, 22'b0}
+              :                                    {sy,ey,my};
 
    //assign ovf_next = (e1!=255 && e2!=255 && ey==255);
  
   
 
 
-
    
-   /*
+   
 
    always @(posedge clk) begin
       if (rst) begin
@@ -199,5 +153,5 @@ module fadd_cy (input wire [31:0] x1,
       end else begin
 	 y <= y_next;
       end
-   end*/
+   end
 endmodule
