@@ -24,17 +24,12 @@ module ALU(
         end
     end
     // arithmetic for op= 000 , 100 (including immediate)
-    logic [31:0] add, sub, sll, srl, sra, slt, sltu, xorr, andd, orr;
+    logic [31:0] add, sub, sll, srl, sra; 
     assign add = op1 +   op2;
     assign sub = op1 -   op2;
     assign sll = op1 <<  op2[4:0];
     assign srl = op1 >>  op2[4:0];
     assign sra = op1 >>> op2[4:0];
-    assign slt = {31'b0, $signed(op1) <   $signed(op2)};
-    assign sltu= {31'b0, $unsigned(op1) < $unsigned(op2)};
-    assign xorr= op1 ^   op2;
-    assign andd= op1 &  op2;
-    assign orr = op1 |  op2;
     
     //floatint point arithmetic
     //ganbaru
@@ -91,13 +86,10 @@ module ALU(
     floor flo(.a(op1), .c(floor), .clk, .rst);
     
     //floating point cond, mv
-    logic [31:0] feq, flt, fle, fmvxw, fmvwx, fmv, itof, ftoi;
+    logic [31:0] feq, flt, fle,itof, ftoi;
     feq feqq(.x(op1), .y(op2), .z(feq));
     flt fltt(.x(op1), .y(op2), .z(flt), .clk, .rst);
     fle flee(.x(op1), .y(op2), .z(fle), .clk, .rst);
-    assign fmvwx= op1;
-    assign fmvxw= op1;
-    assign fmv  = op1;
     itof itoff(.clk, .rst, .a(op1), .c(itof));
     ftoi ftoii(.clk, .rst, .a(op1), .c(ftoi));
     
@@ -131,9 +123,6 @@ module ALU(
             6'b011000 :  n_res = feq;
             6'b011001 :  n_res = flt; 
             6'b011010 :  n_res = fle; 
-            6'b011011 :  n_res = fmvwx;
-            6'b011100 :  n_res = fmvxw;
-            6'b011101 :  n_res = fmv;
             6'b011110 :  n_res = itof;
             6'b011111 :  n_res = ftoi;
 
