@@ -80,6 +80,8 @@ module dmem_ram(
             //wb_memdata <=0;
             take_uart3 <= 0;
             take_uart4 <= 0;
+            take_scratch3 <= 0;
+            take_scratch4 <= 0;
         end else begin
             if(~stall)begin
             take_uart3 <= uart_en3;
@@ -128,7 +130,7 @@ module dmem_ram(
     logic dmem_en3,dmem_en4 ;
     assign dmem_en3 = daddr3[29:25] == 5'b00000 && ~uart_en3;
     assign dmem_en4 = daddr4[29:25] == 5'b00000 && ~uart_en4;
-    logic use3, use4;
+   logic use3, use4;
     assign use3 = dmem_en3 && (dec_mre3 || dec_mwe3);
     assign use4 = dmem_en4 && (dec_mre4 || dec_mwe4);
 
@@ -145,14 +147,14 @@ module dmem_ram(
     assign rx_valid = ~rd_empty;
     
 
-    logic [7:0] tdata;
-    logic tready;
-    logic tx_full;
-    logic tx_empty;
+   logic [7:0] tdata;
+   logic tready;
+   logic tx_full;
+   logic tx_empty;
     uart_tx tx(.clk, .rst, .txd, .tdata, .tvalid(~tx_empty& tready), .tready);
     logic [7:0] wr_d;
     assign wr_d = uart_en3 ? op32[7:0] : op42[7:0];
-    logic wr_en;
+   logic wr_en;
     assign wr_en = ((dec_mwe3 & uart_en3) | (dec_mwe4 & uart_en4)) & ~tx_full & ~stall;
     fifo fifo_tx(.clk, .rst, .wr_d, .wr_en, .wr_full(tx_full), .rd_d(tdata), .rd_en(~tx_empty & tready), .rd_empty(tx_empty));
     assign tx_ready = ~tx_full;

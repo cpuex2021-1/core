@@ -7,15 +7,29 @@ module ifetch(
 
     input logic [31:0] dec_op32,
     input logic [29:0] daddr3,
-    input logic dec_mwe3
+    input logic dec_mwe3,
+    output logic [13:0] pc_led
 
 );
+    localparam DATA_WIDTH = 32;
+assign pc_led = pc;
     (*ram_style = "block"*) logic [127:0] mem [16383:0];
+/*blk_mem_gen_1 imem(
+  .clka(clk),    // input wire clka
+  .ena(~stall),
+  .wea(daddr3[29:25] == 5'b11110 & dec_mwe3),      // input wire [0 : 0] wea
+  .addra({daddr3[15:2], ~daddr3[1:0]}),  // input wire [15 : 0] addra
+  .dina(dec_op32),    // input wire [31 : 0] dina
+  .clkb(clk),    // input wire clkb
+  .enb(~stall),
+  .addrb(naddr),  // input wire [13 : 0] addrb
+  .doutb(inst)  // output wire [127 : 0] doutb
+);*/
     int i=0;
     initial begin
         for(i=0; i<16384; i=i+1)mem[i] = 0;
-        //$readmemh("inst.mem", mem,0, 12000);
-        $readmemh("loader.mem", mem, 16366, 16383); //check pc
+        $readmemh("inst.mem", mem,0, 12000);
+        //$readmemh("loader.mem", mem, 16353, 16383); //check pc
     end
 
     logic [13:0] pc;
@@ -41,13 +55,26 @@ module ifetch(
     assign jabs = op==3'b111 && {funct[2], funct[0]} == 2'b00;
     assign jreg = op==3'b111 && {funct[2], funct[0]} == 2'b01;
 
+    logic [13:0] iaddr;
+    assign iaddr = daddr3[15:2];
+
+    logic we[4];
+    assign we[0] = offset == 2'b11;
+    assign we[1] = offset == 2'b10;
+    assign we[2] = offset == 2'b01;
+    assign we[3] = offset == 2'b00;
+    /*logic [13:0] naddr;
+    always_comb begin if(npc_enn)    naddr = npc;
+        else if (jabs) naddr = npc;
+        else if (pop)  naddr = ra;
+        else           naddr = pc;
+    end*/
 
     always_ff @( posedge clk ) begin 
         if(rst ) begin
             inst <= 0;
-            pc <= 16365;
-        /*end else if (flush)begin
-            inst <= 0;*/
+            //pc <= 16351;
+            pc <= -1;
         end else begin
             if(~stall) begin
                 if(npc_enn) begin
@@ -65,11 +92,10 @@ module ifetch(
                 end
                 // boot loaderは後で考える。
                 if (daddr3[29:25] == 5'b11110 & dec_mwe3) begin
-                    if(offset == 2'b00)mem[daddr3[15:2]][31:0] <= dec_op32;
-                    if(offset == 2'b01)mem[daddr3[15:2]][63:32] <= dec_op32;
-                    if(offset == 2'b10)mem[daddr3[15:2]][95:64] <= dec_op32;
-                    if(offset == 2'b11)mem[daddr3[15:2]][127:96] <= dec_op32;
-                    
+                    if(we[3])mem[iaddr][DATA_WIDTH*4-1:DATA_WIDTH*3] <= dec_op32;
+                    if(we[2])mem[iaddr][DATA_WIDTH*3-1:DATA_WIDTH*2] <= dec_op32;
+                    if(we[1])mem[iaddr][DATA_WIDTH*2-1:DATA_WIDTH*1] <= dec_op32;
+                    if(we[0])mem[iaddr][DATA_WIDTH*1-1:DATA_WIDTH*0] <= dec_op32;
                 end
             end
         end

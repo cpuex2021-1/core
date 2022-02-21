@@ -46,7 +46,7 @@ module top(
         input  logic 				 M_AXI_RVALID,
         output logic 				 M_AXI_RREADY
     );
-    assign pc_ = pc[13:0];
+    assign pc_ = pc;
     wire [127:0] inst;
     wire [13:0] pc;
     wire [13:0] npc;
@@ -62,7 +62,6 @@ module top(
     logic [6:0] dec_rd1,dec_rd2, dec_rd3, dec_rd4;
     logic dec_mre3, dec_mwe3;
     logic dec_mre4, dec_mwe4;
-    logic [13:0] npc;
     logic [29:0] daddr3,daddr4;
 
     logic beq, bne, blt , bge;
@@ -80,7 +79,7 @@ module top(
     logic stall;
     logic uart_stall;
     logic cache_stall;
-    logic dec_stall;
+   logic dec_stall;
     logic alu_stall1, alu_stall2;
 
 
@@ -91,7 +90,7 @@ module top(
     //
     //PC       program_counter(.clk, .rst, .npc, .stall(stall||dec_stall ), .pc, .npc_enn , .inst1(inst[127:96]));
     //imem_ram imem(.clk, .rst, .pc, .npc, .npc_enn, .inst,.if_pc, .dec_op32, .daddr3, .stall(stall || dec_stall), .dec_mwe3, .flush);
-    ifetch ife(.clk, .rst, .stall(stall||dec_stall), .flush, .npc, .npc_enn, .inst, .dec_op32, .daddr3, .dec_mwe3);
+    ifetch ife(.clk, .rst, .stall(stall||dec_stall), .flush, .npc, .npc_enn, .inst, .dec_op32, .daddr3, .dec_mwe3, .pc_led(pc_));
     //IF <-> Dec & RF 
     decode decode(.clk, .rst, .inst,
                     .dec_op11, .dec_op12, .dec_op21, .dec_op22, .dec_op31, .dec_op32, .dec_op41, .dec_op42,

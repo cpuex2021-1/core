@@ -7,7 +7,8 @@ module uart_rx (
     output logic rvalid 
 );
   //parameter  WAIT_DIV = 5;  // for test
-  parameter  WAIT_DIV = 434;  // for FPGA
+  //parameter  WAIT_DIV = 434;  // for FPGA
+  parameter  WAIT_DIV = 25;  // for FPGA
   localparam WAIT_LEN = $clog2(WAIT_DIV);
 
   typedef enum{

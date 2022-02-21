@@ -28,6 +28,7 @@ module register(
     assign rs32data_reg = rs32[5:0] == 6'b00000 ? 32'b0 : register[rs32[5:0]];
     assign rs41data_reg = rs41[5:0] == 6'b00000 ? 32'b0 : register[rs41[5:0]];
     assign rs42data_reg = rs42[5:0] == 6'b00000 ? 32'b0 : register[rs42[5:0]];
+    
 
     always_ff @(posedge clk) begin
         //if(we && wb_rd[6] == 1'b1) begin // wb_rd[6:5] means rd is valid and to int register

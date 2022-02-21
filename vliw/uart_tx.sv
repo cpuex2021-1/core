@@ -6,7 +6,8 @@ module uart_tx (
     output logic txd
 );
     //parameter WAIT_DIV = 5; //for test
-    parameter WAIT_DIV = 434; //for fpga
+    //parameter WAIT_DIV = 434; //for fpga
+    parameter WAIT_DIV = 25; //for fpga
     localparam WAIT_LEN = $clog2(WAIT_DIV);
 
     typedef enum{

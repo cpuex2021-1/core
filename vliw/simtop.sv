@@ -158,6 +158,13 @@ logic [7:0] send_bin[0:167] = {
   8'hf6, 8'h01, 8'h00, 8'h00, 8'h36, 8'h02, 8'h00, 8'h00, 8'hf6, 8'h01, 8'h00, 8'h00,
   8'h76, 8'h02, 8'h00, 8'h00, 8'hc4, 8'hff, 8'hbf, 8'h31, 8'h0e, 8'hc8, 8'hff, 8'h37
 };
+logic [7:0] loopback_bin[0:31] = {
+  8'h00, 8'h00, 8'h00, 8'h00, 8'h00, 8'h00, 8'h00, 8'h00, 8'h05, 8'h00, 8'h60, 8'h00,
+  8'h00, 8'h00, 8'h00, 8'h00, 8'h07, 8'h00, 8'h00, 8'h00, 8'h00, 8'h00, 8'h00, 8'h00,
+  8'hb6, 8'h01, 8'h00, 8'h00, 8'h00, 8'h00, 8'h00, 8'h00
+};
+
+
 
         int i;
     initial begin
@@ -192,15 +199,16 @@ logic [7:0] send_bin[0:167] = {
         /*for(i=0; i<1300; i=i+1) begin
             uart(contest_bin[i]);
         end*/
-        uart(32);
-        uart(0);
-        uart(0);
-        uart(0);
+        //uart(32);
+        //uart(0);
+        //uart(0);
+        //uart(0);
         
         
         for(i=0; i<1300; i=i+1) begin
             uart(contest_bin[i]);
         end
+        //uart(9);
         //end
                 
     end

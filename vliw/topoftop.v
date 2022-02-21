@@ -3,7 +3,7 @@ module topoftop(
     input  wire clk, rst,
     input  wire rxd,
     output wire txd,
-    output wire [15:0] pc,
+    output wire [13:0] pc,
     output wire  [27-1:0]      M_AXI_AWADDR,
     output wire  [8-1:0] 			 M_AXI_AWLEN,
     output wire  [3-1:0] 			 M_AXI_AWSIZE,
