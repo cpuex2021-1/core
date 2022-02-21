@@ -2,9 +2,9 @@ module branchjump(
     input  logic beq, bne, blt,bge,
     input  logic dec_jumpr,
     input  logic stall,
-    output logic [31:0] op11,op12,
+     input logic [31:0] op11,op12,
     output logic npc_enn,
-    output logic flush
+   output logic flush
 );
     logic eq,lt;
 
